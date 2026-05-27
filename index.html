@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikacja - Katalog i Cennik</title>
+    <style>
+        /* Główne style */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121214;
+            color: #e1e1e6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Menu nawigacyjne */
+        nav {
+            background-color: #202024;
+            width: 100%;
+            padding: 15px 0;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            position: sticky;
+            top: 0;
+        }
+
+        nav button {
+            background-color: transparent;
+            color: #e1e1e6;
+            border: 2px solid transparent;
+            padding: 10px 20px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.3s;
+            font-weight: bold;
+        }
+
+        nav button:hover, nav button.aktywny {
+            border-color: #00e676;
+            color: #00e676;
+        }
+
+        /* Kontener na zawartość */
+        .zawartosc {
+            width: 100%;
+            max-width: 1200px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        /* Sekcje - domyślnie ukryte */
+        .sekcja {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        /* Aktywna sekcja - widoczna */
+        .sekcja.aktywna {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1, h2 {
+            color: #00e676;
+            margin-bottom: 20px;
+        }
+
+        /* Siatka katalogu */
+        #katalog-pojemnik {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* Karta produktu */
+        .produkt-karta {
+            background-color: #202024;
+            border: 1px solid #29292e;
+            border-radius: 12px;
+            padding: 20px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .produkt-karta:hover {
+            transform: translateY(-5px);
+            border-color: #00e676;
+        }
+
+        .produkt-karta h3 { margin: 0 0 10px 0; color: #ffffff; }
+        .kategoria {
+            display: inline-block;
+            background-color: #29292e;
+            color: #a8a8b3;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+        .cena { font-size: 1.5rem; font-weight: bold; color: #00e676; margin: 10px 0 0 0; }
+
+        /* Przyciski kategorii */
+        .przyciski-kategorii {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .przycisk-kat {
+            background-color: #29292e;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+        }
+
+        .przycisk-kat:hover {
+            background-color: #00e676;
+            color: #121214;
+        }
+
+        /* Proste style dla tekstu informacyjnego */
+        .panel-informacyjny {
+            background-color: #202024;
+            padding: 30px;
+            border-radius: 12px;
+            border-left: 5px solid #00e676;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <nav>
+        <button id="btn-cennik" class="aktywny" onclick="zmienSekcje('cennik')">Pełny Katalog</button>
+        <button id="btn-kategorie" onclick="zmienSekcje('kategorie')">Kategorie</button>
+        <button id="btn-ofirmie" onclick="zmienSekcje('ofirmie')">O firmie</button>
+        <button id="btn-kontakt" onclick="zmienSekcje('kontakt')">Kontakt</button>
+    </nav>
+
+    <div class="zawartosc">
+        
+        <div id="sekcja-cennik" class="sekcja aktywna">
+            <h1>Katalog Przedmiotów</h1>
+            <div id="katalog-pojemnik">
+                <p style="color: #a8a8b3;">Ładowanie przedmiotów z bazy...</p>
+            </div>
+        </div>
+
+        <div id="sekcja-kategorie" class="sekcja">
+            <h1>Wybierz kategorię</h1>
+            <div id="lista-kategorii" class="przyciski-kategorii">
+                <p style="color: #a8a8b3;">Ładowanie kategorii...</p>
+            </div>
+            <div id="katalog-filtrowany"></div>
+        </div>
+
+        <div id="sekcja-ofirmie" class="sekcja">
+            <h1>O naszej firmie</h1>
+            <div class="panel-informacyjny">
+                <h2>Witaj w naszym sklepie!</h2>
+                <p>Jesteśmy liderem na rynku, dostarczając najwyższej jakości produkty. Nasza misja to pełne zadowolenie klienta oraz innowacyjne podejście do technologii i handlu.</p>
+                <p>Nasza baza powiększa się z każdym dniem. Stawiamy na profesjonalizm, szybkość działania i najlepsze ceny!</p>
+            </div>
+        </div>
+
+        <div id="sekcja-kontakt" class="sekcja">
+            <h1>Skontaktuj się z nami</h1>
+            <div class="panel-informacyjny">
+                <p>Masz pytania dotyczące naszego cennika lub chcesz złożyć specjalne zamówienie? Jesteśmy do Twojej dyspozycji!</p>
+                <ul style="list-style: none; padding: 0;">
+                    <li style="margin-bottom: 10px;">📧 <strong>Email:</strong> kontakt@twojafirma.pl</li>
+                    <li style="margin-bottom: 10px;">📞 <strong>Telefon:</strong> +48 123 456 789</li>
+                    <li style="margin-bottom: 10px;">📍 <strong>Adres:</strong> ul. Przykładowa 12, 00-000 Miasto</li>
+                    <li style="margin-bottom: 10px;">💬 <strong>Discord:</strong> TwojSerwer#1234</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+</body>
+</html>
