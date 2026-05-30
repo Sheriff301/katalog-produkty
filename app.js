@@ -26,12 +26,16 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
     produkty.forEach(przedmiot => {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
-        const obrazek = przedmiot.zdjecie_url ? przedmiot.zdjecie_url : 'https://via.placeholder.com/280x200/202024/a8a8b3?text=Brak+Zdjecia';
         
-        // POPRAWKA: Dodano onerror="this.style.display='none'", aby ukryć niedziałające obrazki
+        // ZABEZPIECZENIE: Sprawdzamy czy url zaczyna się od http, jeśli nie - używamy placehold.co
+        let obrazek = przedmiot.zdjecie_url;
+        if (!obrazek || !obrazek.startsWith('http')) {
+            obrazek = 'https://placehold.co/280x200/202024/a8a8b3?text=Brak+Zdjecia';
+        }
+        
         karta.innerHTML = `
             <div>
-                <img src="${obrazek}" alt="${przedmiot.nazwa}" onerror="this.style.display='none'">
+                <img src="${obrazek}" alt="${przedmiot.nazwa}" onerror="this.src='https://placehold.co/280x200/202024/a8a8b3?text=Blad+Obrazka'">
                 <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
                 <h3>${przedmiot.nazwa}</h3>
                 <p class="opis">${przedmiot.opis || ''}</p>
