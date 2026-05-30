@@ -1,13 +1,11 @@
-// Ustawienia połączenia z Supabase
 const supabaseUrl = 'https://prpycsgjzihsjmsqymyt.supabase.co'; 
-const supabaseKey = 'sb_publishable_TZ4EklfptNyLtDmtC4ULHg_7PkZCteK'; // <--- WKLEJ TWÓJ KLUCZ PUBLICZNY SUPABASE
+const supabaseKey = 'sb_publishable_TZ4EklfptNyLtDmtC4ULHg_7PkZCteK'; 
 
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 let wszystkieProdukty = [];
 let koszyk = JSON.parse(localStorage.getItem('koszyk')) || [];
 
-// Pobieranie danych z bazy przy uruchomieniu strony
 async function pobierzCennik() {
     const { data, error } = await supabaseClient.from('produkty').select('*');
     if (error) {
@@ -20,7 +18,6 @@ async function pobierzCennik() {
     aktualizujWidokKoszyka();
 }
 
-// Wyświetlanie produktów w siatce kart
 function wyswietlKatalog(produkty, docelowyPojemnikId) {
     const pojemnik = document.getElementById(docelowyPojemnikId);
     pojemnik.innerHTML = ''; 
@@ -46,7 +43,6 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
     });
 }
 
-// Dodawanie przedmiotu do koszyka
 function dodajDoKoszyka(idProduktu) {
     const produktWKoszyku = koszyk.find(item => String(item.id) === String(idProduktu));
     if (produktWKoszyku) {
@@ -62,7 +58,6 @@ function dodajDoKoszyka(idProduktu) {
     alert('Dodano produkt do koszyka!');
 }
 
-// Zmiana ilości sztuk (+ / - / usuń)
 function zmienIlosc(idProduktu, zmiana) {
     const produkt = koszyk.find(item => String(item.id) === String(idProduktu));
     if (!produkt) return;
@@ -72,9 +67,10 @@ function zmienIlosc(idProduktu, zmiana) {
     aktualizujWidokKoszyka();
 }
 
-// Aktualizacja wyglądu koszyka HTML i licznika w menu
 function aktualizujWidokKoszyka() {
-    document.getElementById('koszyk-licznik').innerText = koszyk.reduce((sum, item) => sum + item.ilosc, 0);
+    const licznik = document.getElementById('koszyk-licznik');
+    if (licznik) licznik.innerText = koszyk.reduce((sum, item) => sum + item.ilosc, 0);
+    
     const listaPojemnik = document.getElementById('koszyk-lista-elementow');
     if (!listaPojemnik) return;
     listaPojemnik.innerHTML = '';
@@ -106,84 +102,8 @@ function aktualizujWidokKoszyka() {
     document.getElementById('koszyk-suma-kwota').innerText = sumaCalkowita.toFixed(2);
 }
 
-// Generowanie unikalnego kodu dla zamówienia (np. AB35ED)
 function generujKodZamowienia() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
-// Ukrywanie/Pokazywanie przycisków w zależności od wyboru: Stripe (BLIK) lub PayPal
-function przelaczPrzyciskPlatnosci() {
-    const wybranaMetoda = document.querySelector('input[name="metoda_platnosci"]:checked').value;
-    const btnStripe = document.getElementById('btn-zatwierdz-zamowienie');
-    const containerPayPal = document.getElementById('paypal-button-container');
-
-    if (wybranaMetoda === 'PayPal') {
-        btnStripe.style.display = 'none';
-        containerPayPal.style.display = 'block';
-    } else {
-        btnStripe.style.display = 'block';
-        containerPayPal.style.display = 'none';
-    }
-}
-
-// --- OBSŁUGA STRIPE (BLIK) ---
-async function wyslijZamowienie(event) {
-    event.preventDefault(); 
-    if (koszyk.length === 0) return alert('Koszyk jest pusty!');
-
-    const btnZatwierdz = document.getElementById('btn-zatwierdz-zamowienie');
-    btnZatwierdz.innerText = 'Łączenie z bramką płatności BLIK...';
-    btnZatwierdz.disabled = true;
-
-    const nazwaKlienta = document.getElementById('klient-nazwa').value;
-    const telefonKlienta = document.getElementById('klient-telefon').value;
-    const adresKlienta = document.getElementById('klient-adres').value;
-    const wygenerowanyKod = generujKodZamowienia();
-
-    const pelneDaneKlienta = `Klient: ${nazwaKlienta}\nTel: ${telefonKlienta}\nAdres: ${adresKlienta}`;
-    let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa}`).join('\n');
-    const sumaCalkowita = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
-
-    // Krok A: Zapisujemy zamówienie w Supabase jako "Oczekujące na płatność"
-    const { error } = await supabaseClient.from('zamowienia').insert([{
-        klient_dane: pelneDaneKlienta,
-        produkty_lista: tekstowaListaProduktow,
-        wartosc_calkowita: sumaCalkowita,
-        status: 'Oczekujące na płatność',
-        kod_zamowienia: wygenerowanyKod,
-        metoda_platnosci: 'BLIK / Bramka Online'
-    }]);
-
-    if (error) {
-        alert('Wystąpił błąd bazy danych. Spróbuj ponownie.');
-        btnZatwierdz.innerText = 'Zapłać przez BLIK / Bramkę Online';
-        btnZatwierdz.disabled = false;
-        return;
-    }
-
-    // Krok B: Wywołujemy Deno Edge Function w Supabase, aby wygenerować link Stripe (z BLIKiem)
-    try {
-        const { data, error: functionError } = await supabaseClient.functions.invoke('stworz-platnosc-stripe', {
-            body: { 
-                koszyk: koszyk, 
-                kod_zamowienia: wygenerowanyKod 
-            }
-        });
-
-        if (functionError) throw functionError;
-
-        // Krok C: Jeśli funkcja przekazała URL płatności, przenosimy tam klienta!
-        if (data && data.url) {
-            window.location.href = data.url;
-        } else {
-            throw new Error("Brak adresu URL płatności");
-        }
-    } catch (err) {
-        console.error(err);
-        alert('Zamówienie zapisane, ale nie udało się otworzyć płatności online. Możesz sprawdzić status zamówienia kodem: ' + wygenerowanyKod);
-        btnZatwierdz.innerText = 'Zapłać przez BLIK / Bramkę Online';
-        btnZatwierdz.disabled = false;
-    }
 }
 
 // --- OBSŁUGA PAYPAL (Smart Buttons) ---
@@ -193,7 +113,6 @@ paypal.Buttons({
             alert('Twój koszyk jest pusty!');
             return actions.reject();
         }
-        // Pobieramy kwotę z koszyka do okienka PayPal
         const kwota = document.getElementById('koszyk-suma-kwota').innerText;
         return actions.order.create({
             purchase_units: [{
@@ -202,19 +121,16 @@ paypal.Buttons({
         });
     },
     onApprove: async function(data, actions) {
-        // Klient zatwierdził płatność w systemie PayPal
         const szczegoly = await actions.order.capture();
-
-        const nazwaKlienta = document.getElementById('klient-nazwa').value || szczegoly.payer.name.given_name + " " + szczegoly.payer.name.surname;
-        const telefonKlienta = document.getElementById('klient-telefon').value || "Nie podano";
-        const adresKlienta = document.getElementById('klient-adres').value || "Pobrane z PayPal";
+        const nazwaKlienta = document.getElementById('klient-nazwa').value;
+        const telefonKlienta = document.getElementById('klient-telefon').value;
+        const adresKlienta = document.getElementById('klient-adres').value;
         const wygenerowanyKod = generujKodZamowienia();
 
         const pelneDaneKlienta = `Klient: ${nazwaKlienta}\nTel: ${telefonKlienta}\nAdres: ${adresKlienta}`;
         let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa}`).join('\n');
         const sumaCalkowita = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
 
-        // Zapisujemy zamówienie od razu jako "Opłacone"
         await supabaseClient.from('zamowienia').insert([{
             klient_dane: pelneDaneKlienta,
             produkty_lista: tekstowaListaProduktow,
@@ -225,11 +141,8 @@ paypal.Buttons({
         }]);
 
         alert(`Płatność PayPal zaakceptowana!\nTwój kod zamówienia to: ${wygenerowanyKod}`);
-        
-        // Czyszczenie koszyka
         koszyk = [];
         localStorage.removeItem('koszyk');
-        document.getElementById('formularz-zamowienia').reset();
         aktualizujWidokKoszyka();
         zmienSekcje('status');
         document.getElementById('input-kod-zamowienia').value = wygenerowanyKod;
@@ -241,7 +154,6 @@ paypal.Buttons({
     }
 }).render('#paypal-button-container');
 
-// --- SPRAWDZANIE STATUSU ---
 async function sprawdzStatusZamowienia() {
     const kod = document.getElementById('input-kod-zamowienia').value.trim().toUpperCase();
     const poleWyniku = document.getElementById('wynik-statusu');
@@ -262,23 +174,21 @@ async function sprawdzStatusZamowienia() {
     }
 
     if (data.length === 0) {
-        poleWyniku.innerHTML = '<div class="status-box" style="border-color: #ff5252;"><strong>Błąd:</strong> Nie znaleziono zamówienia o kodzie ' + kod + '. Sprawdź, czy nie ma literówki.</div>';
+        poleWyniku.innerHTML = '<div class="status-box" style="border-color: #ff5252;"><strong>Błąd:</strong> Nie znaleziono zamówienia.</div>';
     } else {
         const zamowienie = data[0];
         const dataZlozenia = new Date(zamowienie.created_at).toLocaleString('pl-PL');
-        
         poleWyniku.innerHTML = `
             <div class="status-box">
                 <h3 style="color: #00e676; margin-top: 0;">Status: ${zamowienie.status}</h3>
                 <p><strong>Data złożenia:</strong> ${dataZlozenia}</p>
                 <p><strong>Kwota zamówienia:</strong> ${zamowienie.wartosc_calkowita} zł</p>
-                <p><strong>Metoda płatności:</strong> ${zamannienie.metoda_platnosci || zamowienie.metoda_platnosci}</p>
+                <p><strong>Metoda płatności:</strong> ${zamowienie.metoda_platnosci}</p>
             </div>
         `;
     }
 }
 
-// Nawigacja sekcjami na stronie
 function zmienSekcje(nazwaSekcji) {
     document.querySelectorAll('.sekcja').forEach(s => s.classList.remove('aktywna'));
     document.querySelectorAll('nav > button, .dropdown-btn').forEach(b => b.classList.remove('aktywny'));
@@ -292,7 +202,6 @@ function zmienSekcje(nazwaSekcji) {
     if (nazwaSekcji === 'koszyk') aktualizujWidokKoszyka();
 }
 
-// Generowanie listy kategorii w rozwijanym menu
 function wygenerujKategorieDropdown() {
     const dropdown = document.getElementById('lista-kategorii-dropdown');
     dropdown.innerHTML = ''; 
@@ -312,27 +221,4 @@ function wygenerujKategorieDropdown() {
     });
 }
 
-// Nasłuchiwanie na powrót ze Stripe (Sukces płatności BLIK)
-window.addEventListener('DOMContentLoaded', () => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('status') === 'sukces' && params.get('kod')) {
-        const kodZStripe = params.get('kod');
-        alert(`Dziękujemy za dokonanie płatności BLIK!\nTwoje zamówienie zostało przekazane do realizacji.\nTwój kod: ${kodZStripe}`);
-        
-        // Czyszczenie koszyka po udanej płatności
-        koszyk = [];
-        localStorage.removeItem('koszyk');
-        aktualizujWidokKoszyka();
-        
-        // Przenosimy użytkownika od razu do zakładki statusu i wpisujemy kod
-        zmienSekcje('status');
-        document.getElementById('input-kod-zamowienia').value = kodZStripe;
-        sprawdzStatusZamowienia();
-        
-        // Czyszczenie paska URL z parametrów sukcesu
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
-});
-
-// Uruchomienie aplikacji
 pobierzCennik();

@@ -6,267 +6,55 @@
     <title>Aplikacja - Katalog i Cennik</title>
     <style>
         /* Główne style */
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #121214;
-            color: #e1e1e6;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Menu nawigacyjne */
-        nav {
-            background-color: #202024;
-            width: 100%;
-            padding: 15px 0;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            position: sticky;
-            top: 0;
-            z-index: 999;
-        }
-
-        nav button, .dropdown-btn {
-            background-color: transparent;
-            color: #e1e1e6;
-            border: 2px solid transparent;
-            padding: 10px 20px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            border-radius: 8px;
-            transition: 0.3s;
-            font-weight: bold;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        nav button:hover, nav button.aktywny, .dropdown:hover .dropdown-btn {
-            border-color: #00e676;
-            color: #00e676;
-        }
-
-        /* Stylizacja rozwijanego menu (Dropdown w stylu Steam) */
-        .dropdown {
-            position: relative;
-            display: inline-block;
-        }
-
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: #202024;
-            min-width: 220px;
-            box-shadow: 0px 8px 16px rgba(0,0,0,0.6);
-            border: 1px solid #29292e;
-            border-radius: 8px;
-            z-index: 1000;
-            top: 100%;
-            left: 0;
-            overflow: hidden;
-            padding: 5px 0;
-        }
-
-        .dropdown-content button {
-            color: #e1e1e6;
-            padding: 12px 20px;
-            text-align: left;
-            width: 100%;
-            border: none;
-            background: none;
-            border-radius: 0;
-            font-size: 1rem;
-            font-weight: normal;
-            transition: 0.2s;
-        }
-
-        .dropdown-content button:hover {
-            background-color: #29292e;
-            color: #00e676;
-            border-color: transparent;
-        }
-
-        .dropdown:hover .dropdown-content {
-            display: block;
-        }
-
-        /* Kontener na zawartość */
-        .zawartosc {
-            width: 100%;
-            max-width: 1200px;
-            padding: 40px 20px;
-            box-sizing: border-box;
-        }
-
-        /* Sekcje */
-        .sekcja {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-
-        .sekcja.aktywna {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        h1, h2, h3, h4 {
-            color: #00e676;
-            margin-bottom: 20px;
-        }
-
-        /* Siatka katalogu */
-        .katalog-siatka {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 25px;
-        }
-
-        /* Karta produktu z obsługą zdjęć */
-        .produkt-karta {
-            background-color: #202024;
-            border: 1px solid #29292e;
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            transition: transform 0.2s, border-color 0.2s;
-            overflow: hidden;
-        }
-
-        .produkt-karta:hover {
-            transform: translateY(-5px);
-            border-color: #00e676;
-        }
-
-        .produkt-karta img {
-            width: 100%;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            background-color: #121214;
-        }
-
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121214; color: #e1e1e6; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
+        nav { background-color: #202024; width: 100%; padding: 15px 0; display: flex; justify-content: center; gap: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 999; }
+        nav button, .dropdown-btn { background-color: transparent; color: #e1e1e6; border: 2px solid transparent; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: 8px; transition: 0.3s; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        nav button:hover, nav button.aktywny, .dropdown:hover .dropdown-btn { border-color: #00e676; color: #00e676; }
+        .dropdown { position: relative; display: inline-block; }
+        .dropdown-content { display: none; position: absolute; background-color: #202024; min-width: 220px; box-shadow: 0px 8px 16px rgba(0,0,0,0.6); border: 1px solid #29292e; border-radius: 8px; z-index: 1000; top: 100%; left: 0; overflow: hidden; padding: 5px 0; }
+        .dropdown-content button { color: #e1e1e6; padding: 12px 20px; text-align: left; width: 100%; border: none; background: none; border-radius: 0; font-size: 1rem; font-weight: normal; transition: 0.2s; }
+        .dropdown-content button:hover { background-color: #29292e; color: #00e676; border-color: transparent; }
+        .dropdown:hover .dropdown-content { display: block; }
+        .zawartosc { width: 100%; max-width: 1200px; padding: 40px 20px; box-sizing: border-box; }
+        .sekcja { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .sekcja.aktywna { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        h1, h2, h3, h4 { color: #00e676; margin-bottom: 20px; }
+        .katalog-siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .produkt-karta { background-color: #202024; border: 1px solid #29292e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; overflow: hidden; }
+        .produkt-karta:hover { transform: translateY(-5px); border-color: #00e676; }
+        .produkt-karta img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; background-color: #121214; }
         .produkt-karta h3 { margin: 0 0 8px 0; color: #ffffff; font-size: 1.2rem; }
-        
-        .kategoria {
-            align-self: flex-start;
-            background-color: #29292e;
-            color: #a8a8b3;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            margin-bottom: 12px;
-        }
-
-        .opis {
-            color: #a8a8b3;
-            font-size: 0.9rem;
-            line-height: 1.5;
-            margin: 0 0 15px 0;
-            flex-grow: 1;
-        }
-
+        .kategoria { align-self: flex-start; background-color: #29292e; color: #a8a8b3; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 12px; }
+        .opis { color: #a8a8b3; font-size: 0.9rem; line-height: 1.5; margin: 0 0 15px 0; flex-grow: 1; }
         .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0; }
-
-        .btn-akcja, #btn-zatwierdz-zamowienie, .btn-status {
-            background-color: #00e676;
-            color: #121214;
-            border: none;
-            padding: 10px 20px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .btn-akcja:hover, #btn-zatwierdz-zamowienie:hover {
-            background-color: #00c853;
-        }
-
-        /* Panel informacyjny */
-        .panel-informacyjny {
-            background-color: #202024;
-            padding: 30px;
-            border-radius: 12px;
-            border-left: 5px solid #00e676;
-            line-height: 1.6;
-            margin-bottom: 20px;
-        }
-
-        /* Style Koszyka */
-        .koszyk-element {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #202024;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            border: 1px solid #29292e;
-        }
+        .btn-akcja { background-color: #00e676; color: #121214; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .btn-akcja:hover { background-color: #00c853; }
+        .panel-informacyjny { background-color: #202024; padding: 30px; border-radius: 12px; border-left: 5px solid #00e676; line-height: 1.6; margin-bottom: 20px; }
+        .koszyk-element { display: flex; justify-content: space-between; align-items: center; background-color: #202024; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #29292e; }
         .koszyk-element-info h4 { margin: 0 0 5px 0; color: #fff; }
         .koszyk-element-info p { margin: 0; color: #a8a8b3; }
         .koszyk-kontrola { display: flex; align-items: center; gap: 10px; }
         .koszyk-kontrola button { background: #29292e; color: #fff; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
         .koszyk-kontrola button.btn-usun { background: #ff5252; color: #fff; }
-
-        /* Formularze */
         .form-grupa { margin-bottom: 15px; display: flex; flex-direction: column; }
         .form-grupa label { margin-bottom: 5px; color: #a8a8b3; font-weight: bold; }
-        .form-grupa input[type="text"] {
-            background-color: #121214;
-            border: 1px solid #29292e;
-            padding: 12px;
-            border-radius: 6px;
-            color: #fff;
-            font-size: 1rem;
-        }
+        .form-grupa input[type="text"] { background-color: #121214; border: 1px solid #29292e; padding: 12px; border-radius: 6px; color: #fff; font-size: 1rem; }
         .form-grupa input[type="text"]:focus { border-color: #00e676; outline: none; }
-
-        .metody-platnosci-box {
-            background-color: #121214;
-            border: 1px solid #29292e;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .metody-platnosci-box label { display: block; margin-bottom: 10px; cursor: pointer; font-size: 1.05rem; }
-
-        .status-box {
-            background-color: #202024;
-            padding: 20px;
-            border-radius: 8px;
-            border: 1px solid #29292e;
-            margin-top: 20px;
-        }
+        .status-box { background-color: #202024; padding: 20px; border-radius: 8px; border: 1px solid #29292e; margin-top: 20px; }
     </style>
-
     <script src="https://www.paypal.com/sdk/js?client-id=BAACH0NEApIqndJejawG9GMQv2kuSweh8TEzN8aHCvpysTn9cqvRXE5cxGr2Qcni7q4efZrJbohrYSHQeY&currency=PLN"></script>
 </head>
 <body>
 
     <nav>
         <button id="btn-cennik" class="aktywny" onclick="zmienSekcje('cennik')">Pełny Katalog</button>
-        
         <div class="dropdown">
             <button id="btn-kategorie" class="dropdown-btn">Kategorie ▾</button>
             <div id="lista-kategorii-dropdown" class="dropdown-content">
                 <button disabled style="color: #555;">Ładowanie...</button>
             </div>
         </div>
-
         <button id="btn-koszyk" onclick="zmienSekcje('koszyk')">Koszyk (<span id="koszyk-licznik">0</span>)</button>
         <button id="btn-status" onclick="zmienSekcje('status')">Sprawdź Status</button>
         <button id="btn-ofirmie" onclick="zmienSekcje('ofirmie')">O firmie</button>
@@ -274,12 +62,9 @@
     </nav>
 
     <div class="zawartosc">
-        
         <div id="sekcja-cennik" class="sekcja aktywna">
             <h1>Wszystkie Produkty</h1>
-            <div id="katalog-pojemnik" class="katalog-siatka">
-                <p style="color: #a8a8b3;">Ładowanie przedmiotów z bazy...</p>
-            </div>
+            <div id="katalog-pojemnik" class="katalog-siatka"><p style="color: #a8a8b3;">Ładowanie przedmiotów z bazy...</p></div>
         </div>
 
         <div id="sekcja-kategorie" class="sekcja">
@@ -289,15 +74,11 @@
 
         <div id="sekcja-koszyk" class="sekcja">
             <h1>Twój Koszyk</h1>
-            <div id="koszyk-lista-elementow">
-                <p style="color: #a8a8b3;">Koszyk pusty.</p>
-            </div>
-            
+            <div id="koszyk-lista-elementow"><p style="color: #a8a8b3;">Koszyk pusty.</p></div>
             <h2 style="text-align: right; margin-top: 20px;">Suma do zapłaty: <span id="koszyk-suma-kwota">0.00</span> zł</h2>
-
             <div class="panel-informacyjny" style="margin-top: 30px;">
                 <h2>Dane do wysyłki i Płatność</h2>
-                <form id="formularz-zamowienia" onsubmit="wyslijZamowienie(event)">
+                <form id="formularz-zamowienia">
                     <div class="form-grupa">
                         <label for="klient-nazwa">Imię i Nazwisko / Firma</label>
                         <input type="text" id="klient-nazwa" required placeholder="np. Jan Kowalski">
@@ -310,24 +91,7 @@
                         <label for="klient-adres">Adres dostawy</label>
                         <input type="text" id="klient-adres" required placeholder="Ulica, numer, kod pocztowy, miasto">
                     </div>
-
-                    <div class="metody-platnosci-box">
-                        <h4>Wybierz metodę płatności:</h4>
-                        <label>
-                            <input type="radio" name="metoda_platnosci" value="BLIK / Stripe" checked onchange="przelaczPrzyciskPlatnosci()">
-                            📱 BLIK / Karta / Szybki Przelew (Stripe)
-                        </label>
-                        <label>
-                            <input type="radio" name="metoda_platnosci" value="PayPal" onchange="przelaczPrzyciskPlatnosci()">
-                            💳 PayPal
-                        </label>
-                    </div>
-
-                    <button type="submit" id="btn-zatwierdz-zamowienie" class="btn-akcja" style="width: 100%; padding: 15px; font-size: 1.2rem;">
-                        Zapłać przez BLIK / Bramkę Online
-                    </button>
-
-                    <div id="paypal-button-container" style="display: none; margin-top: 15px;"></div>
+                    <div id="paypal-button-container" style="margin-top: 15px;"></div>
                 </form>
             </div>
         </div>
@@ -335,7 +99,7 @@
         <div id="sekcja-status" class="sekcja">
             <h1>Sprawdź status swojego zamówienia</h1>
             <div class="panel-informacyjny">
-                <p>Wpisz swój unikalny 6-znakowy kod zamówienia, aby sprawdzić aktualny etap realizacji.</p>
+                <p>Wpisz swój unikalny 6-znakowy kod zamówienia.</p>
                 <div class="form-grupa" style="flex-direction: row; gap: 10px; margin-top: 15px;">
                     <input type="text" id="input-kod-zamowienia" placeholder="KOD ZAMÓWIENIA" style="text-transform: uppercase; max-width: 250px; margin-bottom: 0;">
                     <button type="button" class="btn-akcja" onclick="sprawdzStatusZamowienia()">Sprawdź</button>
@@ -348,21 +112,17 @@
             <h1>O naszej firmie</h1>
             <div class="panel-informacyjny">
                 <h2>Witaj w naszym sklepie!</h2>
-                <p>Jesteśmy liderem na rynku, dostarczając najwyższej jakości produkty. Nasza misja to pełne zadowolenie klienta oraz innowacyjne podejście do technologii i handlu.</p>
+                <p>Jesteśmy liderem na rynku, dostarczając najwyższej jakości produkty.</p>
             </div>
         </div>
 
         <div id="sekcja-kontakt" class="sekcja">
             <h1>Skontaktuj się z nami</h1>
             <div class="panel-informacyjny">
-                <p>Masz pytania dotyczące naszego cennika lub chcesz złożyć specjalne zamówienie? Jesteśmy do Twojej dyspozycji!</p>
-                <ul style="list-style: none; padding: 0;">
-                    <li style="margin-bottom: 10px;">📧 <strong>Email:</strong> zuchniarz@wp.pl</li>
-                    <li style="margin-bottom: 10px;">📞 <strong>Telefon:</strong> +48 513 333</li>
-                </ul>
+                <p>Jesteśmy do Twojej dyspozycji!</p>
+                <ul><li>📧 Email: zuchniarz@wp.pl</li><li>📞 Telefon: +48 513 333</li></ul>
             </div>
         </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
