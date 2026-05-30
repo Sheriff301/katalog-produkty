@@ -3,139 +3,52 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChemiaNiemieckaTania - Sklep</title>
+    <title>ChemiaNiemieckaTania</title>
     <style>
-        /* Główne style */
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121214; color: #e1e1e6; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-        nav { background-color: #202024; width: 100%; padding: 15px 0; display: flex; justify-content: center; gap: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 999; flex-wrap: wrap; }
-        nav button, .dropdown-btn { background-color: transparent; color: #e1e1e6; border: 2px solid transparent; padding: 10px 20px; font-size: 1rem; cursor: pointer; border-radius: 8px; transition: 0.3s; font-weight: bold; }
-        nav button:hover, nav button.aktywny, .dropdown:hover .dropdown-btn { border-color: #00e676; color: #00e676; }
-        #koszyk-licznik { background-color: #00e676; color: #121214; padding: 2px 8px; border-radius: 20px; font-size: 0.9rem; margin-left: 5px; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content { display: none; position: absolute; background-color: #202024; min-width: 220px; box-shadow: 0px 8px 16px rgba(0,0,0,0.6); border: 1px solid #29292e; border-radius: 8px; z-index: 1000; top: 100%; left: 0; }
-        .dropdown-content button { color: #e1e1e6; padding: 12px 20px; text-align: left; width: 100%; border: none; background: none; font-size: 1rem; transition: 0.2s; }
-        .dropdown-content button:hover { background-color: #29292e; color: #00e676; }
-        .dropdown:hover .dropdown-content { display: block; }
-        .zawartosc { width: 100%; max-width: 1200px; padding: 40px 20px; box-sizing: border-box; }
-        .sekcja { display: none; animation: fadeIn 0.4s; }
+        body { font-family: sans-serif; background-color: #121214; color: #e1e1e6; margin: 0; padding: 0; }
+        nav { background-color: #202024; padding: 15px; display: flex; justify-content: center; gap: 20px; position: sticky; top: 0; z-index: 999; }
+        nav button { background: none; border: 2px solid transparent; color: #e1e1e6; padding: 10px; cursor: pointer; font-weight: bold; }
+        nav button.aktywny { border-bottom: 2px solid #00e676; color: #00e676; }
+        .zawartosc { max-width: 1000px; margin: auto; padding: 20px; }
+        .sekcja { display: none; }
         .sekcja.aktywna { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        h1, h2 { color: #00e676; margin-bottom: 20px; }
-        .katalog-siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .produkt-karta { background-color: #202024; border: 1px solid #29292e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: 0.2s; }
-        .produkt-karta:hover { transform: translateY(-5px); border-color: #00e676; }
-        .produkt-karta img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; }
-        .produkt-karta h3 { margin: 0 0 8px 0; color: #ffffff; }
-        .kategoria { align-self: flex-start; background-color: #29292e; color: #a8a8b3; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 12px; }
-        .opis { color: #a8a8b3; font-size: 0.9rem; margin: 0 0 15px 0; flex-grow: 1; }
-        .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0 0 15px 0; }
-        .btn-akcja { background-color: #00e676; color: #121214; border: none; padding: 12px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; width: 100%; }
-        .btn-akcja:hover { background-color: #00b359; }
-        .koszyk-uklad { display: flex; flex-wrap: wrap; gap: 30px; }
-        .koszyk-lista, .koszyk-formularz { flex: 1; min-width: 300px; }
-        .koszyk-formularz { background-color: #202024; padding: 30px; border-radius: 12px; border: 1px solid #29292e; }
-        .koszyk-element { display: flex; align-items: center; justify-content: space-between; background-color: #202024; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #29292e; }
-        .koszyk-element-info h4 { margin: 0; color: #ffffff; }
-        .koszyk-element-info p { margin: 5px 0 0 0; color: #00e676; font-weight: bold; }
-        .koszyk-kontrola { display: flex; align-items: center; gap: 10px; }
-        .koszyk-kontrola button { background-color: #29292e; color: #ffffff; border: none; width: 30px; height: 30px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .koszyk-kontrola button:hover { background-color: #3e3e44; }
-        .btn-usun { background-color: #ff5252 !important; color: white !important; }
+        .katalog-siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .produkt-karta { background-color: #202024; padding: 15px; border-radius: 8px; border: 1px solid #29292e; }
+        .btn-akcja { background-color: #00e676; color: #121214; border: none; padding: 10px; width: 100%; cursor: pointer; border-radius: 5px; font-weight: bold; }
         .grupa-formularza { margin-bottom: 15px; }
-        .grupa-formularza label { display: block; margin-bottom: 5px; color: #a8a8b3; font-size: 0.9rem; }
-        .grupa-formularza input[type="text"], .grupa-formularza input[type="tel"], .grupa-formularza textarea { width: 100%; padding: 12px; background-color: #121214; border: 1px solid #29292e; border-radius: 6px; color: #ffffff; font-size: 1rem; box-sizing: border-box; }
-        .grupa-formularza input:focus, .grupa-formularza textarea:focus { border-color: #00e676; outline: none; }
-        .radio-opcja { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; background: #121214; padding: 10px; border-radius: 6px; border: 1px solid #29292e; cursor: pointer; }
-        .suma-zamowienia { font-size: 1.5rem; font-weight: bold; margin: 20px 0; text-align: right; color: #ffffff; }
-        .status-box { background-color: #121214; padding: 20px; border-radius: 8px; border-left: 5px solid #00e676; margin-top: 20px; }
-
-        /* Responsywność dla urządzeń mobilnych */
-        @media (max-width: 600px) {
-            nav { flex-direction: column; padding: 10px; gap: 5px; }
-            nav button, .dropdown { width: 100%; }
-            .dropdown-btn { width: 100%; text-align: center; }
-            .zawartosc { padding: 20px 10px; }
-            .produkt-karta { margin: 0; }
-        }
+        .grupa-formularza input, .grupa-formularza textarea { width: 100%; padding: 10px; box-sizing: border-box; }
     </style>
 </head>
 <body>
 
     <nav>
         <button id="btn-cennik" class="aktywny" onclick="zmienSekcje('cennik')">Sklep</button>
-        <div class="dropdown">
-            <button id="btn-kategorie" class="dropdown-btn">Kategorie ▾</button>
-            <div id="lista-kategorii-dropdown" class="dropdown-content"><button disabled>Ładowanie...</button></div>
-        </div>
-        <button id="btn-koszyk" onclick="zmienSekcje('koszyk')">Koszyk <span id="koszyk-licznik">0</span></button>
-        <button id="btn-status" onclick="zmienSekcje('status')">Status Zamówienia</button>
+        <button id="btn-koszyk" onclick="zmienSekcje('koszyk')">Koszyk (<span id="koszyk-licznik">0</span>)</button>
+        <button id="btn-status" onclick="zmienSekcje('status')">Status</button>
     </nav>
 
     <div class="zawartosc">
         <div id="sekcja-cennik" class="sekcja aktywna">
-            <h1>Katalog Produktów</h1>
-            <div id="katalog-pojemnik" class="katalog-siatka"><p>Ładowanie produktów z bazy...</p></div>
-        </div>
-
-        <div id="sekcja-kategorie" class="sekcja">
-            <h1 id="naglowek-kategorii">Kategoria</h1>
-            <div id="katalog-filtrowany" class="katalog-siatka"></div>
+            <h1>Katalog</h1>
+            <div id="katalog-pojemnik" class="katalog-siatka">Ładowanie...</div>
         </div>
 
         <div id="sekcja-koszyk" class="sekcja">
-            <h1>Twój Koszyk</h1>
-            <div class="koszyk-uklad">
-                <div class="koszyk-lista" id="koszyk-lista-elementow"></div>
-                <div class="koszyk-formularz">
-                    <h2>Dane do dostawy</h2>
-                    <form id="formularz-zamowienia" onsubmit="wyslijZamowienie(event)">
-                        <div class="grupa-formularza">
-                            <label for="klient-nazwa">Imię i Nazwisko / Nazwa Firmy *</label>
-                            <input type="text" id="klient-nazwa" required>
-                        </div>
-                        <div class="grupa-formularza">
-                            <label for="klient-telefon">Numer telefonu *</label>
-                            <input type="tel" id="klient-telefon" required>
-                        </div>
-                        <div class="grupa-formularza">
-                            <label for="klient-adres">Adres dostawy (Ulica, nr, kod pocztowy, miasto) *</label>
-                            <textarea id="klient-adres" rows="3" required></textarea>
-                        </div>
-                        
-                        <div class="grupa-formularza">
-                            <label>Wybierz metodę płatności *</label>
-                            <label class="radio-opcja">
-                                <input type="radio" name="metoda_platnosci" value="Gotówka przy odbiorze" checked>
-                                Gotówka przy odbiorze paczki
-                            </label>
-                            <label class="radio-opcja">
-                                <input type="radio" name="metoda_platnosci" value="Przelew tradycyjny (z góry)">
-                                Przelew tradycyjny (płatność z góry)
-                            </label>
-                        </div>
-
-                        <div class="suma-zamowienia">Razem: <span id="koszyk-suma-kwota">0.00</span> zł</div>
-                        <button type="submit" class="btn-akcja" id="btn-zatwierdz-zamowienie">Potwierdzam zamówienie</button>
-                    </form>
-                </div>
-            </div>
+            <h1>Koszyk</h1>
+            <div id="koszyk-lista-elementow"></div>
+            <form id="formularz-zamowienia" onsubmit="wyslijZamowienie(event)">
+                <div class="grupa-formularza"><input type="text" id="klient-nazwa" placeholder="Imię i nazwisko" required></div>
+                <div class="grupa-formularza"><textarea id="klient-adres" placeholder="Adres" required></textarea></div>
+                <button type="submit" class="btn-akcja">Zamów</button>
+            </form>
         </div>
 
         <div id="sekcja-status" class="sekcja">
-            <h1>Śledzenie zamówienia</h1>
-            <div class="koszyk-formularz" style="max-width: 600px; margin: 0 auto;">
-                <p style="color: #a8a8b3; margin-bottom: 20px;">Wpisz unikalny kod, który otrzymałeś po złożeniu zamówienia, aby sprawdzić, na jakim etapie jest Twoja paczka.</p>
-                <div class="grupa-formularza">
-                    <label for="input-kod-zamowienia">Kod zamówienia</label>
-                    <input type="text" id="input-kod-zamowienia" placeholder="Np. X7B9K2">
-                </div>
-                <button class="btn-akcja" onclick="sprawdzStatusZamowienia()">Sprawdź status</button>
-                
-                <div id="wynik-statusu" style="display: none; margin-top: 30px;">
-                    </div>
-            </div>
+            <h1>Sprawdź status</h1>
+            <input type="text" id="input-kod-zamowienia" placeholder="Wpisz kod zamówienia">
+            <button class="btn-akcja" onclick="sprawdzStatusZamowienia()">Sprawdź</button>
+            <div id="wynik-statusu"></div>
         </div>
-
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
