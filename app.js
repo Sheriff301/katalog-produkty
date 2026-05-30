@@ -106,13 +106,9 @@ function generujKodZamowienia() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-// --- OBSŁUGA PAYPAL (Smart Buttons) ---
+// --- OBSŁUGA PAYPAL ---
 paypal.Buttons({
     createOrder: function(data, actions) {
-        if (koszyk.length === 0) {
-            alert('Twój koszyk jest pusty!');
-            return actions.reject();
-        }
         const kwota = document.getElementById('koszyk-suma-kwota').innerText;
         return actions.order.create({
             purchase_units: [{
@@ -125,8 +121,13 @@ paypal.Buttons({
         const nazwaKlienta = document.getElementById('klient-nazwa').value;
         const telefonKlienta = document.getElementById('klient-telefon').value;
         const adresKlienta = document.getElementById('klient-adres').value;
-        const wygenerowanyKod = generujKodZamowienia();
+        
+        if(!nazwaKlienta || !telefonKlienta || !adresKlienta) {
+            alert('Proszę wypełnić dane kontaktowe!');
+            return;
+        }
 
+        const wygenerowanyKod = generujKodZamowienia();
         const pelneDaneKlienta = `Klient: ${nazwaKlienta}\nTel: ${telefonKlienta}\nAdres: ${adresKlienta}`;
         let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa}`).join('\n');
         const sumaCalkowita = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
@@ -140,17 +141,13 @@ paypal.Buttons({
             metoda_platnosci: 'PayPal'
         }]);
 
-        alert(`Płatność PayPal zaakceptowana!\nTwój kod zamówienia to: ${wygenerowanyKod}`);
+        alert(`Płatność zaakceptowana! Twój kod: ${wygenerowanyKod}`);
         koszyk = [];
         localStorage.removeItem('koszyk');
         aktualizujWidokKoszyka();
         zmienSekcje('status');
         document.getElementById('input-kod-zamowienia').value = wygenerowanyKod;
         sprawdzStatusZamowienia();
-    },
-    onError: function(err) {
-        console.error(err);
-        alert('Wystąpił błąd podczas autoryzacji płatności PayPal.');
     }
 }).render('#paypal-button-container');
 
@@ -158,32 +155,25 @@ async function sprawdzStatusZamowienia() {
     const kod = document.getElementById('input-kod-zamowienia').value.trim().toUpperCase();
     const poleWyniku = document.getElementById('wynik-statusu');
     
-    if (!kod) return alert('Wpisz najpierw kod zamówienia!');
+    if (!kod) return alert('Wpisz kod zamówienia!');
 
     poleWyniku.style.display = 'block';
-    poleWyniku.innerHTML = '<p style="color: #00e676;">Szukanie w bazie danych...</p>';
+    poleWyniku.innerHTML = '<p style="color: #00e676;">Szukanie w bazie...</p>';
 
     const { data, error } = await supabaseClient
         .from('zamowienia')
         .select('status, wartosc_calkowita, metoda_platnosci, created_at')
         .eq('kod_zamowienia', kod);
 
-    if (error) {
-        poleWyniku.innerHTML = '<p style="color: red;">Wystąpił błąd połączenia z bazą.</p>';
-        return;
-    }
-
-    if (data.length === 0) {
-        poleWyniku.innerHTML = '<div class="status-box" style="border-color: #ff5252;"><strong>Błąd:</strong> Nie znaleziono zamówienia.</div>';
+    if (error || data.length === 0) {
+        poleWyniku.innerHTML = '<p style="color: #ff5252;">Nie znaleziono zamówienia.</p>';
     } else {
-        const zamowienie = data[0];
-        const dataZlozenia = new Date(zamowienie.created_at).toLocaleString('pl-PL');
+        const z = data[0];
         poleWyniku.innerHTML = `
             <div class="status-box">
-                <h3 style="color: #00e676; margin-top: 0;">Status: ${zamowienie.status}</h3>
-                <p><strong>Data złożenia:</strong> ${dataZlozenia}</p>
-                <p><strong>Kwota zamówienia:</strong> ${zamowienie.wartosc_calkowita} zł</p>
-                <p><strong>Metoda płatności:</strong> ${zamowienie.metoda_platnosci}</p>
+                <h3 style="color: #00e676;">Status: ${z.status}</h3>
+                <p>Kwota: ${z.wartosc_calkowita} zł</p>
+                <p>Metoda: ${z.metoda_platnosci}</p>
             </div>
         `;
     }
@@ -192,28 +182,21 @@ async function sprawdzStatusZamowienia() {
 function zmienSekcje(nazwaSekcji) {
     document.querySelectorAll('.sekcja').forEach(s => s.classList.remove('aktywna'));
     document.querySelectorAll('nav > button, .dropdown-btn').forEach(b => b.classList.remove('aktywny'));
-    
     const docelowaSekcja = document.getElementById('sekcja-' + nazwaSekcji);
     const docelowyPrzycisk = document.getElementById('btn-' + nazwaSekcji);
-    
     if (docelowaSekcja) docelowaSekcja.classList.add('aktywna');
     if (docelowyPrzycisk) docelowyPrzycisk.classList.add('aktywny');
-    
-    if (nazwaSekcji === 'koszyk') aktualizujWidokKoszyka();
 }
 
 function wygenerujKategorieDropdown() {
     const dropdown = document.getElementById('lista-kategorii-dropdown');
     dropdown.innerHTML = ''; 
     const kategorie = [...new Set(wszystkieProdukty.map(item => item.kategoria))];
-    if (kategorie.length === 0 || (kategorie.length === 1 && !kategorie[0])) return dropdown.innerHTML = '<button disabled>Brak</button>';
-    
     kategorie.forEach(kat => {
-        const nazwaKat = kat || 'Inne'; 
         const btn = document.createElement('button');
-        btn.innerText = nazwaKat;
+        btn.innerText = kat || 'Inne';
         btn.onclick = () => {
-            document.getElementById('naglowek-kategorii').innerText = 'Kategoria: ' + nazwaKat;
+            document.getElementById('naglowek-kategorii').innerText = 'Kategoria: ' + (kat || 'Inne');
             zmienSekcje('kategorie');
             wyswietlKatalog(wszystkieProdukty.filter(p => p.kategoria === kat), 'katalog-filtrowany');
         };
