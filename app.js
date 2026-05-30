@@ -1,13 +1,14 @@
 // 1. Ustawienia połączenia z Supabase
 const supabaseUrl = 'https://prpycsgjzihsjmsqymyt.supabase.co'; 
-const supabaseKey = 'sb_publishable_TZ4EklfptNyLtDmtC4ULHg_7PkZCteK'; // wklej swój klucz anon public
+const supabaseKey = 'sb_publishable_TZ4EklfptNyLtDmtC4ULHg_7PkZCteK'; // <--- WKLEJ TU SWÓJ KLUCZ (sb_publishable...)
 
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Globalna zmienna na dane z bazy
+// Globalne zmienne
 let wszystkieProdukty = [];
+let koszyk = JSON.parse(localStorage.getItem('koszyk')) || [];
 
-// 2. Pobieranie danych z bazy
+// 2. Pobieranie danych o produktach z bazy
 async function pobierzCennik() {
     const { data, error } = await supabaseClient
         .from('produkty') 
@@ -21,14 +22,12 @@ async function pobierzCennik() {
 
     wszystkieProdukty = data;
 
-    // Wyświetlenie wszystkich produktów na stronie głównej
     wyswietlKatalog(wszystkieProdukty, 'katalog-pojemnik');
-    
-    // Wygenerowanie elementów listy rozwijanej w menu
     wygenerujKategorieDropdown();
+    aktualizujWidokKoszyka(); // odświeżenie licznika koszyka na starcie
 }
 
-// 3. Funkcja generująca karty produktów ze zdjęciem, opisem i ceną
+// 3. Wyświetlanie kart produktów w katalogu z przyciskiem "Dodaj do koszyka"
 function wyswietlKatalog(produkty, docelowyPojemnikId) {
     const pojemnik = document.getElementById(docelowyPojemnikId);
     pojemnik.innerHTML = ''; 
@@ -42,26 +41,177 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
         
-        // Zabezpieczenie przed brakiem zdjęcia - jeśli puste, daje szary placeholder
         const obrazek = przedmiot.zdjecie_url ? przedmiot.zdjecie_url : 'https://via.placeholder.com/280x200/202024/a8a8b3?text=Brak+Zdjecia';
-        // Zabezpieczenie przed brakiem opisu
         const opisProduktu = przedmiot.opis ? przedmiot.opis : 'Brak dodatkowego opisu dla tego produktu.';
 
         karta.innerHTML = `
-            <img src="${obrazek}" alt="${przedmiot.nazwa}">
             <div>
+                <img src="${obrazek}" alt="${przedmiot.nazwa}">
                 <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
                 <h3>${przedmiot.nazwa}</h3>
                 <p class="opis">${opisProduktu}</p>
             </div>
-            <p class="cena">${przedmiot.cena} zł</p>
+            <div>
+                <p class="cena">${przedmiot.cena} zł</p>
+                <button class="btn-akcja" onclick="dodajDoKoszyka('${przedmiot.id}')">Dodaj do koszyka</button>
+            </div>
         `;
         
         pojemnik.appendChild(karta);
     });
 }
 
-// 4. Przełączanie sekcji podstron
+// 4. Logika Koszyka - Dodawanie produktów
+function dodajDoKoszyka(idProduktu) {
+    // Szukamy czy produkt jest już w koszyku
+    const produktWKoszyku = koszyk.find(item => item.id == idProduktu);
+    
+    if (produktWKoszyku) {
+        produktWKoszyku.ilosc += 1;
+    } else {
+        // Jeśli nie ma, szukamy go w liście wszystkich pobranych produktów
+        const produktZByzy = wszystkieProdukty.find(item => item.id == idProduktu);
+        if (produktZByzy) {
+            koszyk.push({
+                id: produktZByzy.id,
+                nazwa: produktZByzy.nazwa,
+                cena: produktZByzy.cena,
+                ilosc: 1
+            });
+        }
+    }
+
+    // Zapisujemy koszyk w pamięci przeglądarki i odświeżamy interfejs
+    localStorage.setItem('koszyk', JSON.stringify(koszyk));
+    aktualizujWidokKoszyka();
+    
+    // Wizualne powiadomienie
+    alert('Dodano produkt do koszyka!');
+}
+
+// Zmiana ilości sztuk w koszyku
+function zmienIlosc(idProduktu, zmiana) {
+    const produkt = koszyk.find(item => item.id == idProduktu);
+    if (!produkt) return;
+
+    produkt.ilosc += zmiana;
+
+    if (produkt.ilosc <= 0) {
+        // Usuń jeśli ilość spadnie do zera
+        koszyk = koszyk.filter(item => item.id != idProduktu);
+    }
+
+    localStorage.setItem('koszyk', JSON.stringify(koszyk));
+    aktualizujWidokKoszyka();
+}
+
+// Aktualizacja widoku, sum i liczników
+function aktualizujWidokKoszyka() {
+    // 1. Licznik w menu nawigacyjnym
+    const lacznaIlosc = koszyk.reduce((sum, item) => sum + item.ilosc, 0);
+    document.getElementById('koszyk-licznik').innerText = lacznaIlosc;
+
+    // 2. Generowanie listy w sekcji koszyka
+    const listaPojemnik = document.getElementById('koszyk-lista-elementow');
+    if (!listaPojemnik) return; // zabezpieczenie przed błędami
+
+    listaPojemnik.innerHTML = '';
+    let sumaCalkowita = 0;
+
+    if (koszyk.length === 0) {
+        listaPojemnik.innerHTML = '<p style="color: #a8a8b3; padding: 20px 0;">Twój koszyk jest pusty.</p>';
+        document.getElementById('koszyk-suma-kwota').innerText = '0.00';
+        return;
+    }
+
+    koszyk.forEach(item => {
+        const kosztPrzedmiotow = item.cena * item.ilosc;
+        sumaCalkowita += kosztPrzedmiotow;
+
+        const el = document.createElement('div');
+        el.className = 'koszyk-element';
+        el.innerHTML = `
+            <div class="koszyk-element-info">
+                <h4>${item.nazwa}</h4>
+                <p>${item.cena} zł x ${item.ilosc} = ${kosztPrzedmiotow.toFixed(2)} zł</p>
+            </div>
+            <div class="koszyk-kontrola">
+                <button onclick="zmienIlosc('${item.id}', -1)">-</button>
+                <span>${item.ilosc}</span>
+                <button onclick="zmienIlosc('${item.id}', 1)">+</button>
+                <button class="btn-usun" onclick="zmienIlosc('${item.id}', -${item.ilosc})">Usuń</button>
+            </div>
+        `;
+        listaPojemnik.appendChild(el);
+    });
+
+    document.getElementById('koszyk-suma-kwota').innerText = sumaCalkowita.toFixed(2);
+}
+
+// 5. OBSŁUGA ZAMÓWIENIA - WYSYŁKA DO SUPABASE
+async function wyslijZamowienie(event) {
+    event.preventDefault(); // Powstrzymuje przeładowanie strony po wysłaniu formularza
+
+    if (koszyk.length === 0) {
+        alert('Twój koszyk jest pusty! Dodaj produkty przed złożeniem zamówienia.');
+        return;
+    }
+
+    // Blokujemy przycisk na moment wysyłania
+    const btnZatwierdz = document.getElementById('btn-zatwierdz-zamowienie');
+    btnZatwierdz.innerText = 'Wysyłanie zamówienia...';
+    btnZatwierdz.disabled = true;
+
+    // Przygotowanie danych klienta z pól formularza
+    const nazwaKlienta = document.getElementById('klient-nazwa').value;
+    const telefonKlienta = document.getElementById('klient-telefon').value;
+    const adresKlienta = document.getElementById('klient-adres').value;
+    const uwagiKlienta = document.getElementById('klient-uwagi').value;
+
+    const pelneDaneKlienta = `Klient/Firma: ${nazwaKlienta}\nTelefon: ${telefonKlienta}\nAdres dostawy: ${adresKlienta}\nUwagi: ${uwagiKlienta}`;
+
+    // Przygotowanie listy zakupów w formie czytelnego tekstu
+    let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa} (cena szt: ${item.cena} zł)`).join('\n');
+    
+    // Obliczanie sumy zamówienia
+    const sumaCalkowita = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
+
+    // WYSYŁKA DO TABELI 'zamowienia' W SUPABASE
+    const { data, error } = await supabaseClient
+        .from('zamowienia')
+        .insert([
+            {
+                klient_dane: pelneDaneKlienta,
+                produkty_lista: tekstowaListaProduktow,
+                wartosc_calkowita: sumaCalkowita,
+                status: 'Nowe'
+            }
+        ]);
+
+    if (error) {
+        console.error('Błąd podczas składania zamówienia:', error);
+        alert('Wystąpił problem techniczny podczas składania zamówienia. Spróbuj ponownie.');
+        btnZatwierdz.innerText = 'Złóż zamówienie (Kupuję)';
+        btnZatwierdz.disabled = false;
+        return;
+    }
+
+    // Sukces! Czyszczenie koszyka i formularza
+    alert('Dziękujemy! Twoje zamówienie zostało pomyślnie złożone i przekazane do realizacji.');
+    
+    koszyk = [];
+    localStorage.removeItem('koszyk');
+    document.getElementById('formularz-zamowienia').reset();
+    
+    // Powrót do widoku głównego i odświeżenie koszyka
+    aktualizujWidokKoszyka();
+    zmienSekcje('cennik');
+
+    btnZatwierdz.innerText = 'Złóż zamówienie (Kupuję)';
+    btnZatwierdz.disabled = false;
+}
+
+// 6. Przełączanie sekcji podstron
 function zmienSekcje(nazwaSekcji) {
     const sekcje = document.querySelectorAll('.sekcja');
     sekcje.forEach(sekcja => sekcja.classList.remove('aktywna'));
@@ -71,14 +221,18 @@ function zmienSekcje(nazwaSekcji) {
 
     document.getElementById('sekcja-' + nazwaSekcji).classList.add('aktywna');
     document.getElementById('btn-' + nazwaSekcji).classList.add('aktywny');
+
+    // Jeśli wchodzimy do sekcji koszyka, upewniamy się że wygeneruje się aktualna lista
+    if (nazwaSekcji === 'koszyk') {
+        aktualizujWidokKoszyka();
+    }
 }
 
-// 5. Generowanie dynamicznego menu rozwijanego (Dropdown) na bazie kategorii z bazy
+// 7. Generowanie dynamicznego menu rozwijanego (Dropdown)
 function wygenerujKategorieDropdown() {
     const dropdownContent = document.getElementById('lista-kategorii-dropdown');
-    dropdownContent.innerHTML = ''; // czyszczenie napisu ładuję...
+    dropdownContent.innerHTML = ''; 
 
-    // Pobranie unikalnych nazw kategorii z bazy danych
     const unikalneKategorie = [...new Set(wszystkieProdukty.map(item => item.kategoria))];
 
     if (unikalneKategorie.length === 0 || (unikalneKategorie.length === 1 && !unikalneKategorie[0])) {
@@ -88,22 +242,19 @@ function wygenerujKategorieDropdown() {
 
     unikalneKategorie.forEach(kategoria => {
         const nazwaKat = kategoria ? kategoria : 'Inne'; 
-        
         const btn = document.createElement('button');
         btn.innerText = nazwaKat;
         
-        // Kliknięcie w element rozwijanego menu
         btn.onclick = () => {
             document.getElementById('naglowek-kategorii').innerText = 'Kategoria: ' + nazwaKat;
-            zmienSekcje('kategorie'); // Otwórz sekcję filtrowaną
-            filtrujPoKategorii(kategoria); // Przefiltruj dane
+            zmienSekcje('kategorie');
+            filtrujPoKategorii(kategoria);
         };
         
         dropdownContent.appendChild(btn);
     });
 }
 
-// 6. Filtrowanie
 function filtrujPoKategorii(wybranaKategoria) {
     const przefiltrowane = wszystkieProdukty.filter(przedmiot => przedmiot.kategoria === wybranaKategoria);
     wyswietlKatalog(przefiltrowane, 'katalog-filtrowany');

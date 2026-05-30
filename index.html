@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikacja - Katalog i Cennik</title>
+    <title>Aplikacja - Katalog i Koszyk</title>
     <style>
         /* Główne style */
         body {
@@ -51,7 +51,17 @@
             color: #00e676;
         }
 
-        /* Stylizacja rozwijanego menu (Dropdown w stylu Steam) */
+        /* Licznik koszyka w menu */
+        #koszyk-licznik {
+            background-color: #00e676;
+            color: #121214;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-left: 5px;
+        }
+
+        /* Stylizacja rozwijanego menu (Dropdown) */
         .dropdown {
             position: relative;
             display: inline-block;
@@ -88,7 +98,6 @@
         .dropdown-content button:hover {
             background-color: #29292e;
             color: #00e676;
-            border-color: transparent;
         }
 
         .dropdown:hover .dropdown-content {
@@ -130,7 +139,7 @@
             gap: 25px;
         }
 
-        /* Karta produktu z obsługą zdjęć */
+        /* Karta produktu */
         .produkt-karta {
             background-color: #202024;
             border: 1px solid #29292e;
@@ -174,12 +183,125 @@
             font-size: 0.9rem;
             line-height: 1.5;
             margin: 0 0 15px 0;
-            flex-grow: 1; /* Pozwala wyrównać dół kart */
+            flex-grow: 1;
         }
 
-        .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0; }
+        .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0 0 15px 0; }
 
-        /* Proste style dla tekstu informacyjnego */
+        /* Przyciski akcji */
+        .btn-akcja {
+            background-color: #00e676;
+            color: #121214;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+
+        .btn-akcja:hover {
+            background-color: #00b359;
+        }
+
+        /* Układ Koszyka (Dwie kolumny) */
+        .koszyk-uklad {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .koszyk-lista {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .koszyk-formularz {
+            flex: 1;
+            min-width: 300px;
+            background-color: #202024;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #29292e;
+        }
+
+        /* Elementy koszyka na liście */
+        .koszyk-element {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #202024;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #29292e;
+        }
+
+        .koszyk-element-info h4 { margin: 0; color: #ffffff; }
+        .koszyk-element-info p { margin: 5px 0 0 0; color: #00e676; font-weight: bold; }
+
+        .koszyk-kontrola {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .koszyk-kontrola button {
+            background-color: #29292e;
+            color: #ffffff;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .koszyk-kontrola button:hover { background-color: #3e3e44; }
+
+        .btn-usun {
+            background-color: #ff5252 !important;
+            color: white !important;
+        }
+
+        /* Style pól formularza */
+        .grupa-formularza {
+            margin-bottom: 15px;
+        }
+
+        .grupa-formularza label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a8a8b3;
+            font-size: 0.9rem;
+        }
+
+        .grupa-formularza input, .grupa-formularza textarea {
+            width: 100%;
+            padding: 12px;
+            background-color: #121214;
+            border: 1px solid #29292e;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .grupa-formularza input:focus, .grupa-formularza textarea:focus {
+            border-color: #00e676;
+            outline: none;
+        }
+
+        .suma-zamowienia {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 20px 0;
+            text-align: right;
+            color: #ffffff;
+        }
+
         .panel-informacyjny {
             background-color: #202024;
             padding: 30px;
@@ -201,6 +323,7 @@
             </div>
         </div>
 
+        <button id="btn-koszyk" onclick="zmienSekcje('koszyk')">Koszyk <span id="koszyk-licznik">0</span></button>
         <button id="btn-ofirmie" onclick="zmienSekcje('ofirmie')">O firmie</button>
         <button id="btn-kontakt" onclick="zmienSekcje('kontakt')">Kontakt</button>
     </nav>
@@ -219,18 +342,53 @@
             <div id="katalog-filtrowany" class="katalog-siatka"></div>
         </div>
 
+        <div id="sekcja-koszyk" class="sekcja">
+            <h1>Twój Koszyk</h1>
+            <div class="koszyk-uklad">
+                
+                <div class="koszyk-lista" id="koszyk-lista-elementow">
+                    </div>
+
+                <div class="koszyk-formularz">
+                    <h2>Dane do zamówienia</h2>
+                    <form id="formularz-zamowienia" onsubmit="wyslijZamowienie(event)">
+                        <div class="grupa-formularza">
+                            <label for="klient-nazwa">Imię i Nazwisko / Nazwa Firmy lub Salonu *</label>
+                            <input type="text" id="klient-nazwa" required placeholder="np. Jan Kowalski lub Salon Fryzjerski Bella">
+                        </div>
+                        <div class="grupa-formularza">
+                            <label for="klient-telefon">Numer telefonu *</label>
+                            <input type="tel" id="klient-telefon" required placeholder="np. 123456789">
+                        </div>
+                        <div class="grupa-formularza">
+                            <label for="klient-adres">Adres dostawy (Ulica, nr, kod pocztowy, miasto) *</label>
+                            <textarea id="klient-adres" rows="3" required placeholder="Wpisz pełny adres dostawy"></textarea>
+                        </div>
+                        <div class="grupa-formularza">
+                            <label for="klient-uwagi">Uwagi do zamówienia (opcjonalnie)</label>
+                            <textarea id="klient-uwagi" rows="2" placeholder="Dodatkowe informacje dla sprzedającego"></textarea>
+                        </div>
+
+                        <div class="suma-zamowienia">Razem: <span id="koszyk-suma-kwota">0.00</span> zł</div>
+                        
+                        <button type="submit" class="btn-akcja" id="btn-zatwierdz-zamowienie">Złóż zamówienie (Kupuję)</button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
         <div id="sekcja-ofirmie" class="sekcja">
             <h1>O naszej firmie</h1>
             <div class="panel-informacyjny">
                 <h2>Witaj w naszym sklepie!</h2>
-                <p>Jesteśmy liderem na rynku, dostarczając najwyższej jakości produkty. Nasza misja to pełne zadowolenie klienta oraz innowacyjne podejście do technologii i handlu.</p>
+                <p>Jesteśmy liderem na rynku, dostarczając najwyższej jakości produkty do sprzątania oraz profesjonalne artykuły fryzjerskie.</p>
             </div>
         </div>
 
         <div id="sekcja-kontakt" class="sekcja">
             <h1>Skontaktuj się z nami</h1>
             <div class="panel-informacyjny">
-                <p>Masz pytania dotyczące naszego cennika lub chcesz złożyć specjalne zamówienie? Jesteśmy do Twojej dyspozycji!</p>
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin-bottom: 10px;">📧 <strong>Email:</strong> kontakt@twojafirma.pl</li>
                     <li style="margin-bottom: 10px;">📞 <strong>Telefon:</strong> +48 123 456 789</li>
