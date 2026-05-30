@@ -28,9 +28,10 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             position: sticky;
             top: 0;
+            z-index: 999;
         }
 
-        nav button {
+        nav button, .dropdown-btn {
             background-color: transparent;
             color: #e1e1e6;
             border: 2px solid transparent;
@@ -40,11 +41,58 @@
             border-radius: 8px;
             transition: 0.3s;
             font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 5px;
         }
 
-        nav button:hover, nav button.aktywny {
+        nav button:hover, nav button.aktywny, .dropdown:hover .dropdown-btn {
             border-color: #00e676;
             color: #00e676;
+        }
+
+        /* Stylizacja rozwijanego menu (Dropdown w stylu Steam) */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #202024;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.6);
+            border: 1px solid #29292e;
+            border-radius: 8px;
+            z-index: 1000;
+            top: 100%;
+            left: 0;
+            overflow: hidden;
+            padding: 5px 0;
+        }
+
+        .dropdown-content button {
+            color: #e1e1e6;
+            padding: 12px 20px;
+            text-align: left;
+            width: 100%;
+            border: none;
+            background: none;
+            border-radius: 0;
+            font-size: 1rem;
+            font-weight: normal;
+            transition: 0.2s;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #29292e;
+            color: #00e676;
+            border-color: transparent;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
         }
 
         /* Kontener na zawartość */
@@ -55,13 +103,12 @@
             box-sizing: border-box;
         }
 
-        /* Sekcje - domyślnie ukryte */
+        /* Sekcje */
         .sekcja {
             display: none;
             animation: fadeIn 0.4s ease-in-out;
         }
 
-        /* Aktywna sekcja - widoczna */
         .sekcja.aktywna {
             display: block;
         }
@@ -77,19 +124,23 @@
         }
 
         /* Siatka katalogu */
-        #katalog-pojemnik {
+        .katalog-siatka {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 20px;
+            gap: 25px;
         }
 
-        /* Karta produktu */
+        /* Karta produktu z obsługą zdjęć */
         .produkt-karta {
             background-color: #202024;
             border: 1px solid #29292e;
             border-radius: 12px;
             padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             transition: transform 0.2s, border-color 0.2s;
+            overflow: hidden;
         }
 
         .produkt-karta:hover {
@@ -97,41 +148,36 @@
             border-color: #00e676;
         }
 
-        .produkt-karta h3 { margin: 0 0 10px 0; color: #ffffff; }
+        .produkt-karta img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #121214;
+        }
+
+        .produkt-karta h3 { margin: 0 0 8px 0; color: #ffffff; font-size: 1.2rem; }
+        
         .kategoria {
-            display: inline-block;
+            align-self: flex-start;
             background-color: #29292e;
             color: #a8a8b3;
             padding: 4px 10px;
             border-radius: 20px;
             font-size: 0.85rem;
-            margin-bottom: 15px;
-        }
-        .cena { font-size: 1.5rem; font-weight: bold; color: #00e676; margin: 10px 0 0 0; }
-
-        /* Przyciski kategorii */
-        .przyciski-kategorii {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 12px;
         }
 
-        .przycisk-kat {
-            background-color: #29292e;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.2s;
-            font-size: 1rem;
+        .opis {
+            color: #a8a8b3;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin: 0 0 15px 0;
+            flex-grow: 1; /* Pozwala wyrównać dół kart */
         }
 
-        .przycisk-kat:hover {
-            background-color: #00e676;
-            color: #121214;
-        }
+        .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0; }
 
         /* Proste style dla tekstu informacyjnego */
         .panel-informacyjny {
@@ -147,7 +193,14 @@
 
     <nav>
         <button id="btn-cennik" class="aktywny" onclick="zmienSekcje('cennik')">Pełny Katalog</button>
-        <button id="btn-kategorie" onclick="zmienSekcje('kategorie')">Kategorie</button>
+        
+        <div class="dropdown">
+            <button id="btn-kategorie" class="dropdown-btn">Kategorie ▾</button>
+            <div id="lista-kategorii-dropdown" class="dropdown-content">
+                <button disabled style="color: #555;">Ładowanie...</button>
+            </div>
+        </div>
+
         <button id="btn-ofirmie" onclick="zmienSekcje('ofirmie')">O firmie</button>
         <button id="btn-kontakt" onclick="zmienSekcje('kontakt')">Kontakt</button>
     </nav>
@@ -155,18 +208,15 @@
     <div class="zawartosc">
         
         <div id="sekcja-cennik" class="sekcja aktywna">
-            <h1>Katalog Przedmiotów</h1>
-            <div id="katalog-pojemnik">
+            <h1>Wszystkie Produkty</h1>
+            <div id="katalog-pojemnik" class="katalog-siatka">
                 <p style="color: #a8a8b3;">Ładowanie przedmiotów z bazy...</p>
             </div>
         </div>
 
         <div id="sekcja-kategorie" class="sekcja">
-            <h1>Wybierz kategorię</h1>
-            <div id="lista-kategorii" class="przyciski-kategorii">
-                <p style="color: #a8a8b3;">Ładowanie kategorii...</p>
-            </div>
-            <div id="katalog-filtrowany"></div>
+            <h1 id="naglowek-kategorii">Wybierz kategorię z menu</h1>
+            <div id="katalog-filtrowany" class="katalog-siatka"></div>
         </div>
 
         <div id="sekcja-ofirmie" class="sekcja">
@@ -174,7 +224,6 @@
             <div class="panel-informacyjny">
                 <h2>Witaj w naszym sklepie!</h2>
                 <p>Jesteśmy liderem na rynku, dostarczając najwyższej jakości produkty. Nasza misja to pełne zadowolenie klienta oraz innowacyjne podejście do technologii i handlu.</p>
-                <p>Nasza baza powiększa się z każdym dniem. Stawiamy na profesjonalizm, szybkość działania i najlepsze ceny!</p>
             </div>
         </div>
 
@@ -185,8 +234,6 @@
                 <ul style="list-style: none; padding: 0;">
                     <li style="margin-bottom: 10px;">📧 <strong>Email:</strong> kontakt@twojafirma.pl</li>
                     <li style="margin-bottom: 10px;">📞 <strong>Telefon:</strong> +48 123 456 789</li>
-                    <li style="margin-bottom: 10px;">📍 <strong>Adres:</strong> ul. Przykładowa 12, 00-000 Miasto</li>
-                    <li style="margin-bottom: 10px;">💬 <strong>Discord:</strong> TwojSerwer#1234</li>
                 </ul>
             </div>
         </div>

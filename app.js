@@ -1,13 +1,13 @@
 // 1. Ustawienia połączenia z Supabase
-const supabaseUrl = 'TUTAJ_WKLEJ_SWÓJ_URL'; 
-const supabaseKey = 'TUTAJ_WKLEJ_SWÓJ_KLUCZ_SB_PUBLISHABLE';
+const supabaseUrl = 'https://prpycsgjzihsjmsqymyt.supabase.co'; 
+const supabaseKey = 'sb_publishable_TZ4EklfptNyLtDmtC4ULHg_7PkZCteK'; // wklej swój klucz anon public
 
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-// Globalna zmienna do przechowywania wszystkich produktów pobranych z bazy
+// Globalna zmienna na dane z bazy
 let wszystkieProdukty = [];
 
-// 2. Funkcja, która wyciąga dane z tabeli
+// 2. Pobieranie danych z bazy
 async function pobierzCennik() {
     const { data, error } = await supabaseClient
         .from('produkty') 
@@ -19,28 +19,22 @@ async function pobierzCennik() {
         return;
     }
 
-    // Zapisujemy pobrane dane do naszej zmiennej
     wszystkieProdukty = data;
 
-    // Wyświetlamy wszystko w pierwszej zakładce
+    // Wyświetlenie wszystkich produktów na stronie głównej
     wyswietlKatalog(wszystkieProdukty, 'katalog-pojemnik');
     
-    // Generujemy przyciski w zakładce "Kategorie"
-    wygenerujKategorie();
+    // Wygenerowanie elementów listy rozwijanej w menu
+    wygenerujKategorieDropdown();
 }
 
-// 3. Funkcja generująca HTML dla przedmiotów w konkretnym miejscu na stronie
+// 3. Funkcja generująca karty produktów ze zdjęciem, opisem i ceną
 function wyswietlKatalog(produkty, docelowyPojemnikId) {
     const pojemnik = document.getElementById(docelowyPojemnikId);
     pojemnik.innerHTML = ''; 
 
-    // Upewniamy się, że pojemnik ma styl "grid" z CSS (dla przefiltrowanych)
-    pojemnik.style.display = 'grid';
-    pojemnik.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
-    pojemnik.style.gap = '20px';
-
     if (produkty.length === 0) {
-        pojemnik.innerHTML = '<p>Brak przedmiotów w cenniku.</p>';
+        pojemnik.innerHTML = '<p style="color: #a8a8b3;">Brak przedmiotów w tej kategorii.</p>';
         return;
     }
 
@@ -48,9 +42,18 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
         
+        // Zabezpieczenie przed brakiem zdjęcia - jeśli puste, daje szary placeholder
+        const obrazek = przedmiot.zdjecie_url ? przedmiot.zdjecie_url : 'https://via.placeholder.com/280x200/202024/a8a8b3?text=Brak+Zdjecia';
+        // Zabezpieczenie przed brakiem opisu
+        const opisProduktu = przedmiot.opis ? przedmiot.opis : 'Brak dodatkowego opisu dla tego produktu.';
+
         karta.innerHTML = `
-            <h3>${przedmiot.nazwa}</h3>
-            <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
+            <img src="${obrazek}" alt="${przedmiot.nazwa}">
+            <div>
+                <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
+                <h3>${przedmiot.nazwa}</h3>
+                <p class="opis">${opisProduktu}</p>
+            </div>
             <p class="cena">${przedmiot.cena} zł</p>
         `;
         
@@ -58,64 +61,53 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
     });
 }
 
-// ==========================================
-// NOWE FUNKCJE DLA APLIKACJI
-// ==========================================
-
-// Przełączanie sekcji (zakładek) w menu
+// 4. Przełączanie sekcji podstron
 function zmienSekcje(nazwaSekcji) {
-    // Ukryj wszystkie sekcje
     const sekcje = document.querySelectorAll('.sekcja');
     sekcje.forEach(sekcja => sekcja.classList.remove('aktywna'));
 
-    // Zresetuj wygląd przycisków w menu
-    const przyciskiMenu = document.querySelectorAll('nav button');
+    const przyciskiMenu = document.querySelectorAll('nav > button, .dropdown-btn');
     przyciskiMenu.forEach(btn => btn.classList.remove('aktywny'));
 
-    // Pokaż wybraną sekcję i podświetl przycisk
     document.getElementById('sekcja-' + nazwaSekcji).classList.add('aktywna');
     document.getElementById('btn-' + nazwaSekcji).classList.add('aktywny');
 }
 
-// Pobieranie unikalnych kategorii z bazy i tworzenie przycisków
-function wygenerujKategorie() {
-    const pojemnikKategorii = document.getElementById('lista-kategorii');
-    pojemnikKategorii.innerHTML = ''; // czyszczenie
+// 5. Generowanie dynamicznego menu rozwijanego (Dropdown) na bazie kategorii z bazy
+function wygenerujKategorieDropdown() {
+    const dropdownContent = document.getElementById('lista-kategorii-dropdown');
+    dropdownContent.innerHTML = ''; // czyszczenie napisu ładuję...
 
-    // Pobieramy same nazwy kategorii z naszych produktów (usuwamy duplikaty dzięki 'Set')
+    // Pobranie unikalnych nazw kategorii z bazy danych
     const unikalneKategorie = [...new Set(wszystkieProdukty.map(item => item.kategoria))];
 
-    if (unikalneKategorie.length === 0) {
-        pojemnikKategorii.innerHTML = '<p>Brak przypisanych kategorii w bazie.</p>';
+    if (unikalneKategorie.length === 0 || (unikalneKategorie.length === 1 && !unikalneKategorie[0])) {
+        dropdownContent.innerHTML = '<button disabled>Brak kategorii w bazie</button>';
         return;
     }
 
-    // Tworzymy przycisk dla każdej kategorii
     unikalneKategorie.forEach(kategoria => {
-        // Zabezpieczenie na wypadek produktów bez kategorii
         const nazwaKat = kategoria ? kategoria : 'Inne'; 
         
         const btn = document.createElement('button');
-        btn.className = 'przycisk-kat';
         btn.innerText = nazwaKat;
         
-        // Co ma się stać po kliknięciu w kategorię?
+        // Kliknięcie w element rozwijanego menu
         btn.onclick = () => {
-            filtrujPoKategorii(kategoria);
+            document.getElementById('naglowek-kategorii').innerText = 'Kategoria: ' + nazwaKat;
+            zmienSekcje('kategorie'); // Otwórz sekcję filtrowaną
+            filtrujPoKategorii(kategoria); // Przefiltruj dane
         };
         
-        pojemnikKategorii.appendChild(btn);
+        dropdownContent.appendChild(btn);
     });
 }
 
-// Pokazywanie tylko produktów z klikniętej kategorii
+// 6. Filtrowanie
 function filtrujPoKategorii(wybranaKategoria) {
-    // Tworzymy nową listę tylko z produktami pasującymi do kategorii
     const przefiltrowane = wszystkieProdukty.filter(przedmiot => przedmiot.kategoria === wybranaKategoria);
-    
-    // Wyświetlamy je w specjalnym pojemniku pod przyciskami kategorii
     wyswietlKatalog(przefiltrowane, 'katalog-filtrowany');
 }
 
-// Uruchomienie pobierania na start
+// Start skryptu
 pobierzCennik();
