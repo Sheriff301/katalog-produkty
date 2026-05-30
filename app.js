@@ -1,6 +1,6 @@
 // Ustawienia połączenia z Supabase
 const supabaseUrl = 'https://prpycsgjzihsjmsqymyt.supabase.co'; 
-const supabaseKey = 'TUTAJ_WKLEJ_SWÓJ_KLUCZ_SB_PUBLISHABLE'; // <--- WKLEJ TWÓJ KLUCZ PUBLICZNY SUPABASE
+const supabaseKey = 'sb_publishable_TZ4EklfptNyLtDmtC4ULHg_7PkZCteK'; // <--- WKLEJ TWÓJ KLUCZ PUBLICZNY SUPABASE
 
 const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
