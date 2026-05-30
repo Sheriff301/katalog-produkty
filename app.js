@@ -16,18 +16,17 @@ async function pobierzCennik() {
 
     if (error) {
         console.error('Błąd połączenia z bazą:', error);
-        document.getElementById('katalog-pojemnik').innerHTML = '<p style="color: red;">Nie udało się pobrać danych.</p>';
+        document.getElementById('katalog-pojemnik').innerHTML = '<p style="color: #ff5252;">Nie udało się pobrać danych z bazy. Sprawdź konsolę (F12).</p>';
         return;
     }
 
     wszystkieProdukty = data;
-
     wyswietlKatalog(wszystkieProdukty, 'katalog-pojemnik');
     wygenerujKategorieDropdown();
-    aktualizujWidokKoszyka(); // odświeżenie licznika koszyka na starcie
+    aktualizujWidokKoszyka();
 }
 
-// 3. Wyświetlanie kart produktów w katalogu z przyciskiem "Dodaj do koszyka"
+// 3. Wyświetlanie kart produktów w katalogu
 function wyswietlKatalog(produkty, docelowyPojemnikId) {
     const pojemnik = document.getElementById(docelowyPojemnikId);
     pojemnik.innerHTML = ''; 
@@ -61,24 +60,15 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
     });
 }
 
-// 4. Logika Koszyka - Dodawanie produktów (ZAKTUALIZOWANA WERSJA)
+// 4. Logika Koszyka
 function dodajDoKoszyka(idProduktu) {
-    console.log("--- PROCES DODAWANIA DO KOSZYKA ---");
-    console.log("Kliknięte ID produktu z przycisku:", idProduktu);
-    console.log("Lista wszystkich produktów załadowanych z Supabase:", wszystkieProdukty);
-
-    // Szukamy czy produkt jest już w koszyku (konwertujemy na String dla 100% pewności dopasowania)
     const produktWKoszyku = koszyk.find(item => String(item.id) === String(idProduktu));
     
     if (produktWKoszyku) {
         produktWKoszyku.ilosc += 1;
-        localStorage.setItem('koszyk', JSON.stringify(koszyk));
-        aktualizujWidokKoszyka();
         alert('Zwiększono ilość produktu w koszyku!');
     } else {
-        // Jeśli przedmiotu nie ma w koszyku, szukamy go w liście pobranej z bazy danych
         const produktZBazy = wszystkieProdukty.find(item => String(item.id) === String(idProduktu));
-        
         if (produktZBazy) {
             koszyk.push({
                 id: produktZBazy.id,
@@ -86,18 +76,17 @@ function dodajDoKoszyka(idProduktu) {
                 cena: produktZBazy.cena,
                 ilosc: 1
             });
-            localStorage.setItem('koszyk', JSON.stringify(koszyk));
-            aktualizujWidokKoszyka();
             alert('Dodano produkt do koszyka!');
         } else {
-            // Jeśli skrypt trafi tutaj, oznacza to, że kliknięte ID nie pasuje do żadnego ID z tabeli Supabase
-            console.error("KRYTYCZNY BŁĄD: Nie znaleziono produktu o ID '" + idProduktu + "' na liście pobranej z bazy danych!");
-            alert('Wystąpił problem techniczny z ID produktu. Otwórz konsolę (klawisz F12), aby sprawdzić błędy.');
+            console.error("KRYTYCZNY BŁĄD: Nie znaleziono produktu o ID '" + idProduktu + "'.");
+            alert('Wystąpił problem techniczny z ID produktu.');
         }
     }
+    
+    localStorage.setItem('koszyk', JSON.stringify(koszyk));
+    aktualizujWidokKoszyka();
 }
 
-// Zmiana ilości sztuk w koszyku
 function zmienIlosc(idProduktu, zmiana) {
     const produkt = koszyk.find(item => String(item.id) === String(idProduktu));
     if (!produkt) return;
@@ -105,7 +94,6 @@ function zmienIlosc(idProduktu, zmiana) {
     produkt.ilosc += zmiana;
 
     if (produkt.ilosc <= 0) {
-        // Usuń jeśli ilość spadnie do zera
         koszyk = koszyk.filter(item => String(item.id) !== String(idProduktu));
     }
 
@@ -113,15 +101,12 @@ function zmienIlosc(idProduktu, zmiana) {
     aktualizujWidokKoszyka();
 }
 
-// Aktualizacja widoku, sum i liczników
 function aktualizujWidokKoszyka() {
-    // 1. Licznik w menu nawigacyjnym
     const lacznaIlosc = koszyk.reduce((sum, item) => sum + item.ilosc, 0);
     document.getElementById('koszyk-licznik').innerText = lacznaIlosc;
 
-    // 2. Generowanie listy w sekcji koszyka
     const listaPojemnik = document.getElementById('koszyk-lista-elementow');
-    if (!listaPojemnik) return; // zabezpieczenie przed błędami
+    if (!listaPojemnik) return; 
 
     listaPojemnik.innerHTML = '';
     let sumaCalkowita = 0;
@@ -156,7 +141,11 @@ function aktualizujWidokKoszyka() {
     document.getElementById('koszyk-suma-kwota').innerText = sumaCalkowita.toFixed(2);
 }
 
-// 5. OBSŁUGA ZAMÓWIENIA - WYSYŁKA DO SUPABASE
+// 5. OBSŁUGA ZAMÓWIENIA Z KODEM I PŁATNOŚCIĄ
+function generujKodZamowienia() {
+    return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 async function wyslijZamowienie(event) {
     event.preventDefault(); 
 
@@ -172,12 +161,12 @@ async function wyslijZamowienie(event) {
     const nazwaKlienta = document.getElementById('klient-nazwa').value;
     const telefonKlienta = document.getElementById('klient-telefon').value;
     const adresKlienta = document.getElementById('klient-adres').value;
-    const uwagiKlienta = document.getElementById('klient-uwagi').value;
-
-    const pelneDaneKlienta = `Klient/Firma: ${nazwaKlienta}\nTelefon: ${telefonKlienta}\nAdres dostawy: ${adresKlienta}\nUwagi: ${uwagiKlienta}`;
-
-    let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa} (cena szt: ${item.cena} zł)`).join('\n');
     
+    const metodaPlatnosci = document.querySelector('input[name="metoda_platnosci"]:checked').value;
+    const wygenerowanyKod = generujKodZamowienia();
+
+    const pelneDaneKlienta = `Klient: ${nazwaKlienta}\nTelefon: ${telefonKlienta}\nAdres dostawy: ${adresKlienta}`;
+    let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa} (cena szt: ${item.cena} zł)`).join('\n');
     const sumaCalkowita = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
 
     const { data, error } = await supabaseClient
@@ -187,32 +176,93 @@ async function wyslijZamowienie(event) {
                 klient_dane: pelneDaneKlienta,
                 produkty_lista: tekstowaListaProduktow,
                 wartosc_calkowita: sumaCalkowita,
-                status: 'Nowe'
+                status: 'Oczekujące na potwierdzenie',
+                kod_zamowienia: wygenerowanyKod,
+                metoda_platnosci: metodaPlatnosci
             }
         ]);
 
     if (error) {
         console.error('Błąd podczas składania zamówienia:', error);
         alert('Wystąpił problem techniczny podczas składania zamówienia. Spróbuj ponownie.');
-        btnZatwierdz.innerText = 'Złóż zamówienie (Kupuję)';
+        btnZatwierdz.innerText = 'Potwierdzam zamówienie';
         btnZatwierdz.disabled = false;
         return;
     }
 
-    alert('Dziękujemy! Twoje zamówienie zostało pomyślnie złożone i przekazane do realizacji.');
+    // Komunikat końcowy
+    let wiadomoscSukces = `Dziękujemy! Zamówienie zostało pomyślnie złożone.\n\nTwój KOD ZAMÓWIENIA to: ${wygenerowanyKod}\nZapisz go, aby śledzić paczkę.`;
     
+    if (metodaPlatnosci.includes("Przelew")) {
+        wiadomoscSukces += `\n\n--- DANE DO PRZELEWU ---\nNr konta: 11 2222 3333 4444 5555 6666 7777\nKwota do zapłaty: ${sumaCalkowita.toFixed(2)} zł\nTytułem: Zamówienie ${wygenerowanyKod}`;
+    }
+
+    alert(wiadomoscSukces);
+    
+    // Czyszczenie koszyka i reset widoku
     koszyk = [];
     localStorage.removeItem('koszyk');
     document.getElementById('formularz-zamowienia').reset();
-    
     aktualizujWidokKoszyka();
-    zmienSekcje('cennik');
+    
+    // Przejście od razu do zakładki statusu i wpisanie tam kodu klienta
+    zmienSekcje('status');
+    document.getElementById('input-kod-zamowienia').value = wygenerowanyKod;
 
-    btnZatwierdz.innerText = 'Złóż zamówienie (Kupuję)';
+    btnZatwierdz.innerText = 'Potwierdzam zamówienie';
     btnZatwierdz.disabled = false;
 }
 
-// 6. Przełączanie sekcji podstron
+// 6. SPRAWDZANIE STATUSU ZAMÓWIENIA
+async function sprawdzStatusZamowienia() {
+    const kod = document.getElementById('input-kod-zamowienia').value.trim().toUpperCase();
+    const poleWyniku = document.getElementById('wynik-statusu');
+    
+    if (!kod) {
+        alert('Proszę wpisać kod zamówienia.');
+        return;
+    }
+
+    poleWyniku.style.display = 'block';
+    poleWyniku.innerHTML = '<p style="color: #00e676;">Szukanie w bazie danych...</p>';
+
+    const { data, error } = await supabaseClient
+        .from('zamowienia')
+        .select('status, wartosc_calkowita, metoda_platnosci, created_at')
+        .eq('kod_zamowienia', kod);
+
+    if (error) {
+        console.error(error);
+        poleWyniku.innerHTML = '<p style="color: #ff5252;">Wystąpił błąd połączenia z bazą.</p>';
+        return;
+    }
+
+    if (data.length === 0) {
+        poleWyniku.innerHTML = `
+            <div class="status-box" style="border-left-color: #ff5252;">
+                <strong>Brak wyników:</strong> Nie znaleziono zamówienia o kodzie <b>${kod}</b>. Upewnij się, że kod został wpisany poprawnie (bez spacji).
+            </div>`;
+    } else {
+        const zamowienie = data[0];
+        const dataZlozenia = new Date(zamowienie.created_at).toLocaleString('pl-PL');
+        
+        poleWyniku.innerHTML = `
+            <div class="status-box">
+                <h3 style="color: #00e676; margin-top: 0;">Status: ${zamowienie.status}</h3>
+                <p><strong>Data złożenia:</strong> ${dataZlozenia}</p>
+                <p><strong>Kwota do zapłaty:</strong> ${zamowienie.wartosc_calkowita} zł</p>
+                <p><strong>Wybrana płatność:</strong> ${zamowienie.metoda_platnosci}</p>
+                ${zamowienie.metoda_platnosci.includes('Przelew') 
+                    ? `<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #29292e; font-size: 0.9rem; color: #a8a8b3;">
+                        Oczekujemy na płatność.<br>Nr konta: 11 2222 3333 4444 5555 6666 7777<br>Tytuł przelewu: <b>Zamówienie ${kod}</b>
+                       </div>` 
+                    : ''}
+            </div>
+        `;
+    }
+}
+
+// 7. PRZEŁĄCZANIE SEKCJI MENU
 function zmienSekcje(nazwaSekcji) {
     const sekcje = document.querySelectorAll('.sekcja');
     sekcje.forEach(sekcja => sekcja.classList.remove('aktywna'));
@@ -220,15 +270,18 @@ function zmienSekcje(nazwaSekcji) {
     const przyciskiMenu = document.querySelectorAll('nav > button, .dropdown-btn');
     przyciskiMenu.forEach(btn => btn.classList.remove('aktywny'));
 
-    document.getElementById('sekcja-' + nazwaSekcji).classList.add('aktywna');
-    document.getElementById('btn-' + nazwaSekcji).classList.add('aktywny');
+    const elementSekcji = document.getElementById('sekcja-' + nazwaSekcji);
+    if (elementSekcji) elementSekcji.classList.add('aktywna');
+
+    const elementPrzycisku = document.getElementById('btn-' + nazwaSekcji);
+    if (elementPrzycisku) elementPrzycisku.classList.add('aktywny');
 
     if (nazwaSekcji === 'koszyk') {
         aktualizujWidokKoszyka();
     }
 }
 
-// 7. Generowanie dynamicznego menu rozwijanego (Dropdown)
+// 8. GENEROWANIE KATEGORII W DROPDOWN
 function wygenerujKategorieDropdown() {
     const dropdownContent = document.getElementById('lista-kategorii-dropdown');
     dropdownContent.innerHTML = ''; 
@@ -260,5 +313,5 @@ function filtrujPoKategorii(wybranaKategoria) {
     wyswietlKatalog(przefiltrowane, 'katalog-filtrowany');
 }
 
-// Start skryptu
+// Start skryptu przy uruchomieniu strony
 pobierzCennik();
