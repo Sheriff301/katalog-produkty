@@ -27,9 +27,11 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
         const obrazek = przedmiot.zdjecie_url ? przedmiot.zdjecie_url : 'https://via.placeholder.com/280x200/202024/a8a8b3?text=Brak+Zdjecia';
+        
+        // POPRAWKA: Dodano onerror="this.style.display='none'", aby ukryć niedziałające obrazki
         karta.innerHTML = `
             <div>
-                <img src="${obrazek}" alt="${przedmiot.nazwa}">
+                <img src="${obrazek}" alt="${przedmiot.nazwa}" onerror="this.style.display='none'">
                 <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
                 <h3>${przedmiot.nazwa}</h3>
                 <p class="opis">${przedmiot.opis || ''}</p>
@@ -109,10 +111,16 @@ function generujKodZamowienia() {
 // --- OBSŁUGA PAYPAL ---
 paypal.Buttons({
     createOrder: function(data, actions) {
-        const kwota = document.getElementById('koszyk-suma-kwota').innerText;
+        // POPRAWKA: Czyścimy kwotę z " zł" i spacji, zostawiamy tylko cyfry i kropkę
+        const rawKwota = document.getElementById('koszyk-suma-kwota').innerText;
+        const cleanKwota = rawKwota.replace(/[^0-9.]/g, ''); 
+        
         return actions.order.create({
             purchase_units: [{
-                amount: { value: kwota }
+                amount: {
+                    currency_code: 'PLN', // Ważne dla PayPal
+                    value: cleanKwota
+                }
             }]
         });
     },
