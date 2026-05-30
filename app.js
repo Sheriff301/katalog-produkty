@@ -61,44 +61,52 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
     });
 }
 
-// 4. Logika Koszyka - Dodawanie produktów
+// 4. Logika Koszyka - Dodawanie produktów (ZAKTUALIZOWANA WERSJA)
 function dodajDoKoszyka(idProduktu) {
-    // Szukamy czy produkt jest już w koszyku
-    const produktWKoszyku = koszyk.find(item => item.id == idProduktu);
+    console.log("--- PROCES DODAWANIA DO KOSZYKA ---");
+    console.log("Kliknięte ID produktu z przycisku:", idProduktu);
+    console.log("Lista wszystkich produktów załadowanych z Supabase:", wszystkieProdukty);
+
+    // Szukamy czy produkt jest już w koszyku (konwertujemy na String dla 100% pewności dopasowania)
+    const produktWKoszyku = koszyk.find(item => String(item.id) === String(idProduktu));
     
     if (produktWKoszyku) {
         produktWKoszyku.ilosc += 1;
+        localStorage.setItem('koszyk', JSON.stringify(koszyk));
+        aktualizujWidokKoszyka();
+        alert('Zwiększono ilość produktu w koszyku!');
     } else {
-        // Jeśli nie ma, szukamy go w liście wszystkich pobranych produktów
-        const produktZByzy = wszystkieProdukty.find(item => item.id == idProduktu);
-        if (produktZByzy) {
+        // Jeśli przedmiotu nie ma w koszyku, szukamy go w liście pobranej z bazy danych
+        const produktZBazy = wszystkieProdukty.find(item => String(item.id) === String(idProduktu));
+        
+        if (produktZBazy) {
             koszyk.push({
-                id: produktZByzy.id,
-                nazwa: produktZByzy.nazwa,
-                cena: produktZByzy.cena,
+                id: produktZBazy.id,
+                nazwa: produktZBazy.nazwa,
+                cena: produktZBazy.cena,
                 ilosc: 1
             });
+            localStorage.setItem('koszyk', JSON.stringify(koszyk));
+            aktualizujWidokKoszyka();
+            alert('Dodano produkt do koszyka!');
+        } else {
+            // Jeśli skrypt trafi tutaj, oznacza to, że kliknięte ID nie pasuje do żadnego ID z tabeli Supabase
+            console.error("KRYTYCZNY BŁĄD: Nie znaleziono produktu o ID '" + idProduktu + "' na liście pobranej z bazy danych!");
+            alert('Wystąpił problem techniczny z ID produktu. Otwórz konsolę (klawisz F12), aby sprawdzić błędy.');
         }
     }
-
-    // Zapisujemy koszyk w pamięci przeglądarki i odświeżamy interfejs
-    localStorage.setItem('koszyk', JSON.stringify(koszyk));
-    aktualizujWidokKoszyka();
-    
-    // Wizualne powiadomienie
-    alert('Dodano produkt do koszyka!');
 }
 
 // Zmiana ilości sztuk w koszyku
 function zmienIlosc(idProduktu, zmiana) {
-    const produkt = koszyk.find(item => item.id == idProduktu);
+    const produkt = koszyk.find(item => String(item.id) === String(idProduktu));
     if (!produkt) return;
 
     produkt.ilosc += zmiana;
 
     if (produkt.ilosc <= 0) {
         // Usuń jeśli ilość spadnie do zera
-        koszyk = koszyk.filter(item => item.id != idProduktu);
+        koszyk = koszyk.filter(item => String(item.id) !== String(idProduktu));
     }
 
     localStorage.setItem('koszyk', JSON.stringify(koszyk));
@@ -150,19 +158,17 @@ function aktualizujWidokKoszyka() {
 
 // 5. OBSŁUGA ZAMÓWIENIA - WYSYŁKA DO SUPABASE
 async function wyslijZamowienie(event) {
-    event.preventDefault(); // Powstrzymuje przeładowanie strony po wysłaniu formularza
+    event.preventDefault(); 
 
     if (koszyk.length === 0) {
         alert('Twój koszyk jest pusty! Dodaj produkty przed złożeniem zamówienia.');
         return;
     }
 
-    // Blokujemy przycisk na moment wysyłania
     const btnZatwierdz = document.getElementById('btn-zatwierdz-zamowienie');
     btnZatwierdz.innerText = 'Wysyłanie zamówienia...';
     btnZatwierdz.disabled = true;
 
-    // Przygotowanie danych klienta z pól formularza
     const nazwaKlienta = document.getElementById('klient-nazwa').value;
     const telefonKlienta = document.getElementById('klient-telefon').value;
     const adresKlienta = document.getElementById('klient-adres').value;
@@ -170,13 +176,10 @@ async function wyslijZamowienie(event) {
 
     const pelneDaneKlienta = `Klient/Firma: ${nazwaKlienta}\nTelefon: ${telefonKlienta}\nAdres dostawy: ${adresKlienta}\nUwagi: ${uwagiKlienta}`;
 
-    // Przygotowanie listy zakupów w formie czytelnego tekstu
     let tekstowaListaProduktow = koszyk.map(item => `${item.ilosc}x ${item.nazwa} (cena szt: ${item.cena} zł)`).join('\n');
     
-    // Obliczanie sumy zamówienia
     const sumaCalkowita = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
 
-    // WYSYŁKA DO TABELI 'zamowienia' W SUPABASE
     const { data, error } = await supabaseClient
         .from('zamowienia')
         .insert([
@@ -196,14 +199,12 @@ async function wyslijZamowienie(event) {
         return;
     }
 
-    // Sukces! Czyszczenie koszyka i formularza
     alert('Dziękujemy! Twoje zamówienie zostało pomyślnie złożone i przekazane do realizacji.');
     
     koszyk = [];
     localStorage.removeItem('koszyk');
     document.getElementById('formularz-zamowienia').reset();
     
-    // Powrót do widoku głównego i odświeżenie koszyka
     aktualizujWidokKoszyka();
     zmienSekcje('cennik');
 
@@ -222,7 +223,6 @@ function zmienSekcje(nazwaSekcji) {
     document.getElementById('sekcja-' + nazwaSekcji).classList.add('aktywna');
     document.getElementById('btn-' + nazwaSekcji).classList.add('aktywny');
 
-    // Jeśli wchodzimy do sekcji koszyka, upewniamy się że wygeneruje się aktualna lista
     if (nazwaSekcji === 'koszyk') {
         aktualizujWidokKoszyka();
     }
