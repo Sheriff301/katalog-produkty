@@ -109,17 +109,24 @@ function generujKodZamowienia() {
 }
 
 // --- OBSŁUGA PAYPAL ---
+// --- OBSŁUGA PAYPAL ---
 paypal.Buttons({
     createOrder: function(data, actions) {
-        // POPRAWKA: Czyścimy kwotę z " zł" i spacji, zostawiamy tylko cyfry i kropkę
-        const rawKwota = document.getElementById('koszyk-suma-kwota').innerText;
-        const cleanKwota = rawKwota.replace(/[^0-9.]/g, ''); 
+        // 1. Obliczamy sumę bezpośrednio z tablicy koszyk
+        const suma = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
         
+        // 2. Walidacja: Jeśli suma jest 0 lub mniej, blokujemy transakcję
+        if (suma <= 0) {
+            alert('Twój koszyk jest pusty. Dodaj produkty, aby kontynuować płatność.');
+            return; // Przerywamy działanie
+        }
+
+        // 3. Tworzymy zamówienie z obliczoną sumą
         return actions.order.create({
             purchase_units: [{
                 amount: {
-                    currency_code: 'PLN', // Ważne dla PayPal
-                    value: cleanKwota
+                    currency_code: 'PLN',
+                    value: suma.toFixed(2) // Zamieniamy liczbę na string z dwoma miejscami po przecinku
                 }
             }]
         });
@@ -131,7 +138,7 @@ paypal.Buttons({
         const adresKlienta = document.getElementById('klient-adres').value;
         
         if(!nazwaKlienta || !telefonKlienta || !adresKlienta) {
-            alert('Proszę wypełnić dane kontaktowe!');
+            alert('Proszę wypełnić dane kontaktowe przed dokonaniem płatności!');
             return;
         }
 
