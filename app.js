@@ -21,21 +21,20 @@ async function pobierzCennik() {
 function wyswietlKatalog(produkty, docelowyPojemnikId) {
     const pojemnik = document.getElementById(docelowyPojemnikId);
     pojemnik.innerHTML = ''; 
-    if (produkty.length === 0) return pojemnik.innerHTML = '<p>Brak przedmiotów w tej kategorii.</p>';
-
+    
     produkty.forEach(przedmiot => {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
         
-        // ZABEZPIECZENIE: Sprawdzamy czy url zaczyna się od http, jeśli nie - używamy placehold.co
-        let obrazek = przedmiot.zdjecie_url;
-        if (!obrazek || !obrazek.startsWith('http')) {
-            obrazek = 'https://placehold.co/280x200/202024/a8a8b3?text=Brak+Zdjecia';
-        }
-        
+        // Jeśli link jest pusty lub "popsuty", nie ładujemy go wcale
+        const maPoprawnyObrazek = przedmiot.zdjecie_url && przedmiot.zdjecie_url.length > 10;
+        const imgTag = maPoprawnyObrazek 
+            ? `<img src="${przedmiot.zdjecie_url}" onerror="this.style.display='none'">`
+            : `<div style="height:200px; background:#121214; display:flex; align-items:center; justify-content:center;">Brak zdjęcia</div>`;
+
         karta.innerHTML = `
             <div>
-                <img src="${obrazek}" alt="${przedmiot.nazwa}" onerror="this.src='https://placehold.co/280x200/202024/a8a8b3?text=Blad+Obrazka'">
+                ${imgTag}
                 <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
                 <h3>${przedmiot.nazwa}</h3>
                 <p class="opis">${przedmiot.opis || ''}</p>
@@ -75,6 +74,8 @@ function zmienIlosc(idProduktu, zmiana) {
 
 function aktualizujWidokKoszyka() {
     const licznik = document.getElementById('koszyk-licznik');
+    const panelPlatnosci = document.querySelector('.panel-informacyjny'); // To jest kontener z formularzem
+    
     if (licznik) licznik.innerText = koszyk.reduce((sum, item) => sum + item.ilosc, 0);
     
     const listaPojemnik = document.getElementById('koszyk-lista-elementow');
@@ -82,10 +83,15 @@ function aktualizujWidokKoszyka() {
     listaPojemnik.innerHTML = '';
     
     let sumaCalkowita = 0;
+
+    // --- LOGIKA UKRYWANIA FORMULARZA ---
     if (koszyk.length === 0) {
         listaPojemnik.innerHTML = '<p style="color: #a8a8b3;">Koszyk jest pusty.</p>';
         document.getElementById('koszyk-suma-kwota').innerText = '0.00';
+        if (panelPlatnosci) panelPlatnosci.classList.add('ukryty'); // Ukrywamy formularz
         return;
+    } else {
+        if (panelPlatnosci) panelPlatnosci.classList.remove('ukryty'); // Pokazujemy formularz
     }
 
     koszyk.forEach(item => {
@@ -107,6 +113,7 @@ function aktualizujWidokKoszyka() {
     });
     document.getElementById('koszyk-suma-kwota').innerText = sumaCalkowita.toFixed(2);
 }
+
 
 function generujKodZamowienia() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
