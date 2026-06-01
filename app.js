@@ -17,7 +17,7 @@ async function pobierzCennik() {
     wygenerujKategorieDropdown();
 }
 
-// Renderuje karty produktów (bez przycisku kupna)
+// Renderuje karty produktów 
 function wyswietlKatalog(produkty, docelowyPojemnikId) {
     const pojemnik = document.getElementById(docelowyPojemnikId);
     pojemnik.innerHTML = ''; 
@@ -25,8 +25,9 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
     produkty.forEach(przedmiot => {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
+        // Kliknięcie w kartę otwiera szczegóły
+        karta.onclick = () => pokazSzczegoly(przedmiot.id);
         
-        // Jeśli link jest pusty lub "popsuty", nie ładujemy go wcale
         const maPoprawnyObrazek = przedmiot.zdjecie_url && przedmiot.zdjecie_url.length > 10;
         const imgTag = maPoprawnyObrazek 
             ? `<img src="${przedmiot.zdjecie_url}" onerror="this.style.display='none'">`
@@ -37,26 +38,60 @@ function wyswietlKatalog(produkty, docelowyPojemnikId) {
                 ${imgTag}
                 <span class="kategoria">${przedmiot.kategoria || 'Inne'}</span>
                 <h3>${przedmiot.nazwa}</h3>
-                <p class="opis">${przedmiot.opis || ''}</p>
+                <p class="opis">${przedmiot.opis || 'Brak opisu...'}</p>
             </div>
-            <div>
+            <div style="margin-top: 15px;">
                 <p class="cena">${przedmiot.cena} zł</p>
+                <button class="btn-akcja" style="width: 100%; margin-top: 10px;">Pokaż szczegóły</button>
             </div>
         `;
         pojemnik.appendChild(karta);
     });
 }
 
-// Obsługuje przełączanie widoku między zakładkami z nawigacji
+// Otwiera widok pojedynczego produktu
+function pokazSzczegoly(idProduktu) {
+    const produkt = wszystkieProdukty.find(p => String(p.id) === String(idProduktu));
+    if (!produkt) return;
+
+    const pojemnikSzczegolow = document.getElementById('szczegoly-pojemnik');
+    const maPoprawnyObrazek = produkt.zdjecie_url && produkt.zdjecie_url.length > 10;
+    const imgTag = maPoprawnyObrazek 
+        ? `<img src="${produkt.zdjecie_url}" alt="${produkt.nazwa}">`
+        : `<span>Brak dostępnego zdjęcia</span>`;
+
+    pojemnikSzczegolow.innerHTML = `
+        <div class="szczegoly-widok">
+            <div class="szczegoly-obraz">
+                ${imgTag}
+            </div>
+            <div class="szczegoly-info">
+                <span class="kategoria" style="align-self: flex-start;">${produkt.kategoria || 'Inne'}</span>
+                <h2>${produkt.nazwa}</h2>
+                <p class="cena">${produkt.cena} zł</p>
+                <h4 style="color: #fff; border-bottom: 1px solid #29292e; padding-bottom: 10px;">Opis produktu:</h4>
+                <p class="opis-pelny">${produkt.opis || 'Ten produkt nie posiada jeszcze szczegółowego opisu.'}</p>
+            </div>
+        </div>
+    `;
+
+    zmienSekcje('szczegoly');
+}
+
+// Obsługuje przełączanie widoku między zakładkami
 function zmienSekcje(nazwaSekcji) {
     document.querySelectorAll('.sekcja').forEach(s => s.classList.remove('aktywna'));
     document.querySelectorAll('nav > button, .dropdown-btn').forEach(b => b.classList.remove('aktywny'));
     
     const docelowaSekcja = document.getElementById('sekcja-' + nazwaSekcji);
-    const docelowyPrzycisk = document.getElementById('btn-' + nazwaSekcji);
+    
+    // Zapobiegamy podświetlaniu przycisku "szczegóły", bo nie ma go w navbarze
+    if (nazwaSekcji !== 'szczegoly') {
+        const docelowyPrzycisk = document.getElementById('btn-' + nazwaSekcji);
+        if (docelowyPrzycisk) docelowyPrzycisk.classList.add('aktywny');
+    }
     
     if (docelowaSekcja) docelowaSekcja.classList.add('aktywna');
-    if (docelowyPrzycisk) docelowyPrzycisk.classList.add('aktywny');
 }
 
 // Generuje opcje dla dropdownu z kategoriami
