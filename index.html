@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikacja - Sklep</title>
+    <title>Katalog Produktów</title>
     <style>
-        /* Dodaj to do swojego CSS */
-        .ukryty { display: none !important; }
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121214; color: #e1e1e6; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
         nav { background-color: #202024; width: 100%; padding: 15px 0; display: flex; justify-content: center; gap: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 999; }
         nav button, .dropdown-btn { background-color: transparent; color: #e1e1e6; border: 2px solid transparent; padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border-radius: 8px; transition: 0.3s; font-weight: bold; display: flex; align-items: center; gap: 5px; }
@@ -29,22 +27,8 @@
         .kategoria { align-self: flex-start; background-color: #29292e; color: #a8a8b3; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 12px; }
         .opis { color: #a8a8b3; font-size: 0.9rem; line-height: 1.5; margin: 0 0 15px 0; flex-grow: 1; }
         .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0; }
-        .btn-akcja { background-color: #00e676; color: #121214; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; }
-        .btn-akcja:hover { background-color: #00c853; }
         .panel-informacyjny { background-color: #202024; padding: 30px; border-radius: 12px; border-left: 5px solid #00e676; line-height: 1.6; margin-bottom: 20px; }
-        .koszyk-element { display: flex; justify-content: space-between; align-items: center; background-color: #202024; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid #29292e; }
-        .koszyk-element-info h4 { margin: 0 0 5px 0; color: #fff; }
-        .koszyk-element-info p { margin: 0; color: #a8a8b3; }
-        .koszyk-kontrola { display: flex; align-items: center; gap: 10px; }
-        .koszyk-kontrola button { background: #29292e; color: #fff; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
-        .koszyk-kontrola button.btn-usun { background: #ff5252; color: #fff; }
-        .form-grupa { margin-bottom: 15px; display: flex; flex-direction: column; }
-        .form-grupa label { margin-bottom: 5px; color: #a8a8b3; font-weight: bold; }
-        .form-grupa input[type="text"] { background-color: #121214; border: 1px solid #29292e; padding: 12px; border-radius: 6px; color: #fff; font-size: 1rem; }
-        .form-grupa input[type="text"]:focus { border-color: #00e676; outline: none; }
-        .status-box { background-color: #202024; padding: 20px; border-radius: 8px; border: 1px solid #29292e; margin-top: 20px; }
     </style>
-    <script src="https://www.paypal.com/sdk/js?client-id=BAACH0NEApIqndJejawG9GMQv2kuSweh8TEzN8aHCvpysTn9cqvRXE5cxGr2Qcni7q4efZrJbohrYSHQeY&currency=PLN"></script>
 </head>
 <body>
 
@@ -56,8 +40,6 @@
                 <button disabled style="color: #555;">Ładowanie...</button>
             </div>
         </div>
-        <button id="btn-koszyk" onclick="zmienSekcje('koszyk')">Koszyk (<span id="koszyk-licznik">0</span>)</button>
-        <button id="btn-status" onclick="zmienSekcje('status')">Sprawdź Status</button>
         <button id="btn-ofirmie" onclick="zmienSekcje('ofirmie')">O firmie</button>
         <button id="btn-kontakt" onclick="zmienSekcje('kontakt')">Kontakt</button>
     </nav>
@@ -71,42 +53,6 @@
         <div id="sekcja-kategorie" class="sekcja">
             <h1 id="naglowek-kategorii">Wybierz kategorię z menu</h1>
             <div id="katalog-filtrowany" class="katalog-siatka"></div>
-        </div>
-
-        <div id="sekcja-koszyk" class="sekcja">
-            <h1>Twój Koszyk</h1>
-            <div id="koszyk-lista-elementow"><p style="color: #a8a8b3;">Koszyk pusty.</p></div>
-            <h2 style="text-align: right; margin-top: 20px;">Suma do zapłaty: <span id="koszyk-suma-kwota">0.00</span> zł</h2>
-            <div class="panel-informacyjny" style="margin-top: 30px;">
-                <h2>Dane do wysyłki i Płatność</h2>
-                <form id="formularz-zamowienia">
-                    <div class="form-grupa">
-                        <label for="klient-nazwa">Imię i Nazwisko / Firma</label>
-                        <input type="text" id="klient-nazwa" required placeholder="np. Jan Kowalski">
-                    </div>
-                    <div class="form-grupa">
-                        <label for="klient-telefon">Numer telefonu</label>
-                        <input type="text" id="klient-telefon" required placeholder="np. +48 500 600 700">
-                    </div>
-                    <div class="form-grupa">
-                        <label for="klient-adres">Adres dostawy</label>
-                        <input type="text" id="klient-adres" required placeholder="Ulica, numer, kod pocztowy, miasto">
-                    </div>
-                    <div id="paypal-button-container" style="margin-top: 15px;"></div>
-                </form>
-            </div>
-        </div>
-
-        <div id="sekcja-status" class="sekcja">
-            <h1>Sprawdź status swojego zamówienia</h1>
-            <div class="panel-informacyjny">
-                <p>Wpisz swój unikalny 6-znakowy kod zamówienia.</p>
-                <div class="form-grupa" style="flex-direction: row; gap: 10px; margin-top: 15px;">
-                    <input type="text" id="input-kod-zamowienia" placeholder="KOD ZAMÓWIENIA" style="text-transform: uppercase; max-width: 250px; margin-bottom: 0;">
-                    <button type="button" class="btn-akcja" onclick="sprawdzStatusZamowienia()">Sprawdź</button>
-                </div>
-                <div id="wynik-statusu" style="display: none;"></div>
-            </div>
         </div>
 
         <div id="sekcja-ofirmie" class="sekcja">
