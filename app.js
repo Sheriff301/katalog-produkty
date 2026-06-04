@@ -88,6 +88,7 @@ function wyswietlProdukty(lista) {
             <div>
                 <span class="kategoria">${p.kategoria || 'Ogólna'}</span>
                 <h3>${p.nazwa}</h3>
+                <p class="produkt-opis">${p.opis || 'Brak opisu produktu.'}</p>
             </div>
             <div>
                 <div class="cena">${parseFloat(p.cena).toFixed(2)} zł</div>
@@ -196,6 +197,7 @@ function aktualizujKoszykUI() {
     }
 }
 
+// ... reszta kodu bez zmian ...
 function zapiszKoszyk() {
     localStorage.setItem('koszyk', JSON.stringify(koszyk));
 }
@@ -208,13 +210,11 @@ function wczytajKoszykZLocalStorage() {
     }
 }
 
-// ---- REALIZACJA ZAMÓWIENIA ----
 async function zlozZamowienie() {
     const nazwa = document.getElementById('form-nazwa').value.trim();
     const telefon = document.getElementById('form-telefon').value.trim();
     const adres = document.getElementById('form-adres').value.trim();
     
-    // Pobieramy wartość z nowego dropdownu w HTML
     const platnoscPole = document.getElementById('form-platnosc');
     const platnosc = platnoscPole ? platnoscPole.value : "Nie wybrano";
 
@@ -237,7 +237,7 @@ async function zlozZamowienie() {
                 wartosc_calkowita: sumaWartosc,
                 status: 'Nowe',
                 kod_zamowienia: kodZamowienia,
-                metoda_platnosci: platnosc, // <- Opcja płatności zapisywana w bazie
+                metoda_platnosci: platnosc,
                 user_id: aktualnyUzytkownik ? aktualnyUzytkownik.id : null
             }
         ]);
@@ -265,7 +265,6 @@ async function zlozZamowienie() {
     }
 }
 
-// ---- HISTORIA ZAMÓWIEŃ ----
 async function pobierzMojeZamowienia() {
     if (!aktualnyUzytkownik) return;
 
@@ -314,7 +313,6 @@ function wyswietlZamowienia(lista) {
     });
 }
 
-// ---- SYSTEM AUTENTYKACJI (UŻYTKOWNICY) ----
 function przelaczTrybAuth(e, tryb) {
     e.preventDefault();
     obecnyTrybAuth = tryb;
@@ -371,7 +369,6 @@ async function sprawdzUzytkownika() {
     aktualizujInterfejsUzytkownika(user);
 }
 
-// INTERFEJS ZALEŻNY OD LOGOWANIA
 function aktualizujInterfejsUzytkownika(user) {
     aktualnyUzytkownik = user;
     const btnKonto = document.getElementById('btn-konto');
