@@ -2,7 +2,8 @@
 const SUPABASE_URL = "https://prpycsgjzihsjmsqymyt.supabase.co"; 
 const SUPABASE_ANON_KEY = "TWÓJ_KLUCZ_ANON_Z_SUPABASE"; // <-- Wklej tutaj swój rzeczywisty klucz Project API Key
 
-const supabase = BigSupabase ? BigSupabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// ZMIANA: Używamy nazwy 'supabaseClient' zamiast 'supabase', aby uniknąć konfliktu z globalną zmienną biblioteki
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---- STAN APLIKACJI (STATE) ----
 let wszystkieProdukty = [];
@@ -31,18 +32,14 @@ function przelaczMotyw() {
 
 // ---- NAWIGACJA MIĘDZY SEKCJAMI ----
 function zmienSekcje(nazwaSekcji) {
-    // Ukryj wszystkie sekcje
     document.querySelectorAll('.sekcja').forEach(s => s.classList.remove('aktywna'));
-    // Odsłoń wybraną sekcję
     const wybranaSekcja = document.getElementById(`sekcja-${nazwaSekcji}`);
     if (wybranaSekcja) wybranaSekcja.classList.add('aktywna');
 
-    // Aktualizacja stylów przycisków w menu
     document.querySelectorAll('.nav-linki button').forEach(b => b.classList.remove('aktywny'));
     const aktywnyPrzycisk = document.getElementById(`btn-nav-${nazwaSekcji}`);
     if (aktywnyPrzycisk) aktywnyPrzycisk.classList.add('aktywny');
     
-    // Jeśli wybrano główny katalog, zresetuj filtr tytułowy
     if (nazwaSekcji === 'katalog') {
         document.getElementById('katalog-tytul').innerText = "Wszystkie Produkty";
         wyswietlProdukty(wszystkieProdukty);
@@ -52,7 +49,7 @@ function zmienSekcje(nazwaSekcji) {
 // ---- OBSŁUGA BAZY: PRODUKTY ----
 async function pobierzProdukty() {
     try {
-        const { data, error } = await supabase.from('produkty').select('*');
+        const { data, error } = await supabaseClient.from('produkty').select('*');
         if (error) throw error;
 
         wszystkieProdukty = data || [];
@@ -92,8 +89,6 @@ function wyswietlProdukty(lista) {
 function budujDropdownKategorii() {
     const dropdown = document.getElementById('lista-kategorii-dropdown');
     dropdown.innerHTML = "";
-
-    // Pobierz unikalne kategorie
     const kategorie = [...new Set(wszystkieProdukty.map(p => p.kategoria).filter(Boolean))];
 
     kategorie.forEach(kat => {
@@ -215,12 +210,11 @@ async function zlozZamowienie(metodaPlatnosci) {
     const sumaWartosc = koszyk.reduce((sum, item) => sum + (item.cena * item.ilosc), 0);
     const kodZamowienia = "ZAM-" + Math.floor(100000 + Math.random() * 900000);
     
-    // Budowanie tekstowej listy zakupów
     const produktyOpis = koszyk.map(item => `${item.nazwa} (szt: ${item.ilosc})`).join(", ");
     const daneKlientaSkonsolidowane = `Klient: ${nazwa}, Tel: ${telefon}, Adres: ${adres}`;
 
     try {
-        const { error } = await supabase.from('zamowienia').insert([
+        const { error } = await supabaseClient.from('zamowienia').insert([
             {
                 klient_dane: daneKlientaSkonsolidowane,
                 produkty_lista: produktyOpis,
@@ -228,7 +222,7 @@ async function zlozZamowienie(metodaPlatnosci) {
                 status: 'Nowe',
                 kod_zamowienia: kodZamowienia,
                 metoda_platnosci: metodaPlatnosci,
-                user_id: aktualnyUzytkownik ? aktualnyUzytkownik.id : null // Zapisuje identyfikator klienta uuid
+                user_id: aktualnyUzytkownik ? aktualnyUzytkownik.id : null
             }
         ]);
 
@@ -260,7 +254,7 @@ async function pobierzMojeZamowienia() {
     if (!aktualnyUzytkownik) return;
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('zamowienia')
             .select('*')
             .eq('user_id', aktualnyUzytkownik.id)
@@ -333,7 +327,7 @@ async function autentykuj() {
     }
 
     if (obecnyTrybAuth === 'rejestracja') {
-        const { data, error } = await supabase.auth.signUp({ email, password: haslo });
+        const { data, error } = await supabaseClient.auth.signUp({ email, password: haslo });
         if (error) {
             alert("Błąd rejestracji: " + error.message);
         } else {
@@ -341,7 +335,7 @@ async function autentykuj() {
             aktualizujInterfejsUzytkownika(data.user);
         }
     } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password: haslo });
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password: haslo });
         if (error) {
             alert("Błąd logowania: " + error.message);
         } else {
@@ -351,13 +345,13 @@ async function autentykuj() {
 }
 
 async function wylogujKlienta() {
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     aktualizujInterfejsUzytkownika(null);
     zmienSekcje('katalog');
 }
 
 async function sprawdzUzytkownika() {
-    const { data: { user } } = await supabase.auth.getUser();
+    const { data: { user } } = await supabaseClient.auth.getUser();
     aktualizujInterfejsUzytkownika(user);
 }
 
