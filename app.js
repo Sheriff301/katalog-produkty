@@ -213,6 +213,10 @@ async function zlozZamowienie() {
     const nazwa = document.getElementById('form-nazwa').value.trim();
     const telefon = document.getElementById('form-telefon').value.trim();
     const adres = document.getElementById('form-adres').value.trim();
+    
+    // Pobieramy wartość z nowego dropdownu w HTML
+    const platnoscPole = document.getElementById('form-platnosc');
+    const platnosc = platnoscPole ? platnoscPole.value : "Nie wybrano";
 
     if (!nazwa || !telefon || !adres) {
         alert("Proszę uzupełnić wszystkie dane dostawy!");
@@ -233,13 +237,14 @@ async function zlozZamowienie() {
                 wartosc_calkowita: sumaWartosc,
                 status: 'Nowe',
                 kod_zamowienia: kodZamowienia,
+                metoda_platnosci: platnosc, // <- Opcja płatności zapisywana w bazie
                 user_id: aktualnyUzytkownik ? aktualnyUzytkownik.id : null
             }
         ]);
 
         if (error) throw error;
 
-        alert(`Dziękujemy! Zamówienie ${kodZamowienia} zostało złożone pomyślnie.`);
+        alert(`Dziękujemy! Zamówienie zostało złożone. Wybrana płatność: ${platnosc}`);
         koszyk = [];
         zapiszKoszyk();
         aktualizujKoszykUI();
@@ -302,7 +307,7 @@ function wyswietlZamowienia(lista) {
                 <span class="status-tag ${klasaStatusu}">${z.status || 'Nowe'}</span>
             </div>
             <p style="margin-bottom: 5px; font-size: 0.95rem;"><strong>Produkty:</strong> ${z.produkty_lista}</p>
-            <p style="color: #a8a8b3; font-size: 0.85rem; margin-bottom: 8px;">Data: ${dataFormat}</p>
+            <p style="color: #a8a8b3; font-size: 0.85rem; margin-bottom: 8px;">Data: ${dataFormat} | Płatność: ${z.metoda_platnosci || 'Brak danych'}</p>
             <div style="text-align: right; font-weight: bold; color: #00e676;">Wartość: ${parseFloat(z.wartosc_calkowita).toFixed(2)} zł</div>
         `;
         kontener.appendChild(karta);

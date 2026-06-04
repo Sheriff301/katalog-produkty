@@ -265,33 +265,6 @@
             margin: 20px 0;
         }
 
-        .metody-platnosci {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .btn-platnosci {
-            padding: 15px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 6px;
-            border: none;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            transition: opacity 0.2s;
-        }
-
-        .btn-platnosci:hover { opacity: 0.9; }
-        .btn-paypal { background-color: #ffc439; color: #003087; }
-        .btn-blik { background-color: #231f20; color: #ffffff; border: 1px solid #3e3e42; }
-        .btn-p24 { background-color: #d9363e; color: #ffffff; }
-        .btn-karta { background-color: #3f51b5; color: #ffffff; }
-        .btn-pobranie { background-color: #607d8b; color: #ffffff; }
-
         /* STATUS ZAMÓWIEŃ */
         .zamowienie-karta {
             background-color: #1a1a1e;
@@ -345,7 +318,6 @@
         .jasny-motyw .input-form { background-color: #ffffff; color: #121214; border-color: #d4d4d8; }
         .jasny-motyw .koszyk-kontrola button { background-color: #e4e4e7; color: #121214; }
         .jasny-motyw .koszyk-kontrola button:hover { background-color: #d4d4d8; }
-        .jasny-motyw .btn-blik { background-color: #f4f4f5; color: #231f20; border-color: #d4d4d8; }
     </style>
 </head>
 <body>
@@ -358,7 +330,7 @@
             <div class="dropdown">
                 <button class="dropdown-btn">Kategorie ▾</button>
                 <div class="dropdown-content" id="lista-kategorii-dropdown">
-                    </div>
+                </div>
             </div>
 
             <button id="btn-nav-clinex" onclick="zmienSekcje('clinex')">Katalog Clinex</button>
@@ -375,7 +347,7 @@
         <div id="sekcja-katalog" class="sekcja aktywna">
             <h1 id="katalog-tytul">Wszystkie Produkty</h1>
             <div class="produkty-siatka" id="produkty-lista-html">
-                </div>
+            </div>
         </div>
 
         <div id="sekcja-clinex" class="sekcja">
@@ -388,7 +360,7 @@
         <div id="sekcja-koszyk" class="sekcja">
             <h1>Twój Koszyk</h1>
             <div id="koszyk-elementy-lista">
-                </div>
+            </div>
             
             <div id="koszyk-podsumowanie-sekcja" class="ukryty">
                 <div class="suma-zamowienia">Suma do zapłaty: <span id="koszyk-suma-wartosc">0.00</span> zł</div>
@@ -413,14 +385,16 @@
                         <input type="text" id="form-adres" class="input-form" placeholder="Ulica, numer, kod pocztowy, miasto">
                     </div>
 
-                    <h4 style="margin-top: 25px;">Wybierz metodę płatności, aby sfinalizować:</h4>
-                    <div class="metody-platnosci">
-                        <button class="btn-platnosci btn-paypal" onclick="zlozZamowienie('PayPal')">PayPal</button>
-                        <button class="btn-platnosci btn-blik" onclick="zlozZamowienie('BLIK')">BLIK</button>
-                        <button class="btn-platnosci btn-p24" onclick="zlozZamowienie('Przelewy24')">Przelewy24</button>
-                        <button class="btn-platnosci btn-karta" onclick="zlozZamowienie('Karta')">Karta płatnicza</button>
-                        <button class="btn-platnosci btn-pobranie" style="grid-column: span 2;" onclick="zlozZamowienie('Za pobraniem')">Płatność przy odbiorze (Za pobraniem)</button>
+                    <div class="grupa-formularza" style="margin-top: 25px; margin-bottom: 25px;">
+                        <label style="font-weight: bold; font-size: 1rem; margin-bottom: 10px;">Wybierz metodę płatności:</label>
+                        <select id="form-platnosc" class="input-form" style="cursor: pointer;">
+                            <option value="Przelew bankowy">Przelew bankowy</option>
+                            <option value="Płatność za pobraniem">Płatność za pobraniem (Kurier)</option>
+                            <option value="Odbiór osobisty">Odbiór osobisty (Płatność przy odbiorze)</option>
+                        </select>
                     </div>
+
+                    <button class="btn-akcja" style="padding: 15px; font-size: 1.1rem; margin-top: 10px;" onclick="zlozZamowienie()">Złóż zamówienie</button>
                 </div>
             </div>
         </div>
@@ -428,7 +402,7 @@
         <div id="sekcja-status" class="sekcja">
             <h1>Twoje Zamówienia</h1>
             <div id="zamowienia-lista-html">
-                </div>
+            </div>
         </div>
 
         <div id="sekcja-ustawienia" class="sekcja">
@@ -440,7 +414,7 @@
                 <hr style="border-color: #29292e; margin: 25px 0;">
                 
                 <h3>Personalizacja wyglądu</h3>
-                <p style="color: #a8a8b3; margin-bottom: 15px; font-size: 0.9rem;">Dostosuj styl i schemat kolorów strony według własnych upodobań.</p>
+                <p style="color: #a8a8b3; margin-bottom: 15px; font-size: 0.9rem;">Dostosuj style i schemat kolorów strony według własnych upodobań.</p>
                 <button class="btn-akcja" style="width: 100%; background-color: #FFC107; color: #121214;" onclick="przelaczMotyw()">☀️ / 🌙 Przełącz motyw (Jasny / Ciemny)</button>
             </div>
         </div>
