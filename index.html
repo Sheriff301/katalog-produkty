@@ -20,7 +20,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         h1, h2, h3, h4 { color: #00e676; margin-bottom: 20px; }
         
-        /* Karty produktów */
         .katalog-siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .produkt-karta { background-color: #202024; border: 1px solid #29292e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; overflow: hidden; }
         .produkt-karta:hover { transform: translateY(-5px); border-color: #00e676; }
@@ -30,7 +29,6 @@
         .opis { color: #a8a8b3; font-size: 0.9rem; line-height: 1.5; margin: 0 0 15px 0; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
         .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0; }
         
-        /* Panele, formularze i przyciski */
         .panel-informacyjny { background-color: #202024; padding: 30px; border-radius: 12px; border-left: 5px solid #00e676; line-height: 1.6; margin-bottom: 20px; }
         .btn-akcja { background-color: #00e676; color: #121214; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; display: inline-block; }
         .btn-akcja:hover { background-color: #00c853; }
@@ -41,7 +39,6 @@
         .input-form:focus { outline: none; border-color: #00e676; }
         .ukryty { display: none !important; }
 
-        /* Koszyk */
         .koszyk-element { display: flex; justify-content: space-between; align-items: center; background-color: #202024; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #29292e; }
         .koszyk-kontrola { display: flex; align-items: center; gap: 10px; }
         .koszyk-kontrola button { background-color: #29292e; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; }
@@ -49,7 +46,6 @@
         .btn-usun { background-color: #f44336 !important; font-size: 0.9rem !important; }
         .btn-usun:hover { background-color: #d32f2f !important; }
 
-        /* Widok szczegółów produktu */
         .szczegoly-widok { display: flex; flex-direction: column; gap: 30px; background-color: #202024; padding: 30px; border-radius: 12px; border: 1px solid #29292e; }
         @media(min-width: 768px) { .szczegoly-widok { flex-direction: row; } }
         .szczegoly-obraz { flex: 1; border-radius: 12px; overflow: hidden; background-color: #121214; display: flex; align-items: center; justify-content: center; }
@@ -59,8 +55,9 @@
         .szczegoly-info .cena { font-size: 2.5rem; margin: 20px 0; }
         .szczegoly-info .opis-pelny { color: #a8a8b3; line-height: 1.8; font-size: 1.05rem; white-space: pre-wrap; }
 
-        .iframe-container { width: 100%; height: 80vh; border-radius: 12px; overflow: hidden; border: 1px solid #29292e; }
-        .iframe-container iframe { width: 100%; height: 100%; border: none; }
+        .zamowienie-karta { background-color: #202024; border: 1px solid #29292e; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
+        .zamowienie-naglowek { display: flex; justify-content: space-between; border-bottom: 1px solid #29292e; padding-bottom: 10px; margin-bottom: 10px; }
+        .status-badge { background-color: #2196F3; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -74,14 +71,35 @@
             </div>
         </div>
         <button id="btn-clinex" onclick="zmienSekcje('clinex')">Katalog Clinex</button>
-        <button id="btn-ofirmie" onclick="zmienSekcje('ofirmie')">O firmie</button>
-        <button id="btn-kontakt" onclick="zmienSekcje('kontakt')">Kontakt</button>
-        <button id="btn-koszyk" style="border-color: #00e676;" onclick="zmienSekcje('koszyk')">
-            🛒 Koszyk (<span id="koszyk-licznik">0</span>)
-        </button>
+        <button id="btn-koszyk" style="border-color: #00e676;" onclick="zmienSekcje('koszyk')">🛒 Koszyk (<span id="koszyk-licznik">0</span>)</button>
+        
+        <button id="btn-status" class="ukryty" style="color: #2196F3; border-color: #2196F3;" onclick="zmienSekcje('status')">📦 Status Zamówień</button>
+        <button id="btn-konto" onclick="zmienSekcje('logowanie')">👤 Zaloguj / Zarejestruj</button>
+        <button id="btn-wyloguj" class="ukryty" style="color: #f44336;" onclick="wylogujKlienta()">Wyloguj</button>
     </nav>
 
     <div class="zawartosc">
+        <div id="sekcja-logowanie" class="sekcja">
+            <div style="max-width: 400px; margin: 0 auto;">
+                <h1 style="text-align: center;">Logowanie klienta</h1>
+                <div class="panel-informacyjny">
+                    <p style="margin-top:0; color:#a8a8b3;">Zaloguj się, aby złożyć zamówienie i śledzić jego status.</p>
+                    <input type="email" id="auth-email" class="input-form" placeholder="Adres e-mail">
+                    <input type="password" id="auth-haslo" class="input-form" placeholder="Hasło (min. 6 znaków)">
+                    
+                    <button class="btn-akcja" style="width: 100%; margin-bottom: 10px;" onclick="zalogujKlienta()">Zaloguj się</button>
+                    <button class="btn-akcja" style="width: 100%; background-color: #29292e; color: #fff;" onclick="zarejestrujKlienta()">Nie masz konta? Zarejestruj się</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="sekcja-status" class="sekcja">
+            <h1>Twoje Zamówienia</h1>
+            <div id="lista-zamowien-klienta">
+                <p style="color: #a8a8b3;">Ładowanie historii zamówień...</p>
+            </div>
+        </div>
+
         <div id="sekcja-cennik" class="sekcja aktywna">
             <h1>Wszystkie Produkty</h1>
             <div id="katalog-pojemnik" class="katalog-siatka"><p style="color: #a8a8b3;">Ładowanie przedmiotów z bazy...</p></div>
@@ -107,46 +125,30 @@
                 <h2 style="text-align: right; margin-top: 0;">Suma do zapłaty: <span id="koszyk-suma-kwota">0.00</span> zł</h2>
                 <hr style="border-color: #29292e; margin: 20px 0;">
                 
-                <h3>Dane do wysyłki i Płatność</h3>
-                <input type="text" id="zam-imie" class="input-form" placeholder="Imię i Nazwisko / Nazwa Firmy">
-                <input type="text" id="zam-telefon" class="input-form" placeholder="Numer telefonu">
-                <input type="text" id="zam-adres" class="input-form" placeholder="Adres dostawy (Ulica, nr, kod pocztowy, miasto)">
-                
-                <select id="zam-metoda" class="input-form">
-                    <option value="Za pobraniem">Płatność przy odbiorze (Za pobraniem)</option>
-                    <option value="Przelew tradycyjny">Przelew tradycyjny na konto bankowe</option>
-                </select>
+                <div id="wymagane-logowanie-info" style="color: #f44336; margin-bottom: 15px; font-weight: bold;">
+                    Musisz być zalogowany, aby złożyć zamówienie! Przejdź do zakładki "Zaloguj / Zarejestruj".
+                </div>
 
-                <button class="btn-akcja" style="width: 100%; font-size: 1.2rem; padding: 15px;" onclick="zlozZamowienie()">Złóż zamówienie (Bez płatności online)</button>
+                <div id="formularz-danych">
+                    <h3>Dane do wysyłki i Płatność</h3>
+                    <input type="text" id="zam-imie" class="input-form" placeholder="Imię i Nazwisko / Nazwa Firmy">
+                    <input type="text" id="zam-telefon" class="input-form" placeholder="Numer telefonu">
+                    <input type="text" id="zam-adres" class="input-form" placeholder="Adres dostawy (Ulica, nr, kod pocztowy, miasto)">
+                    
+                    <select id="zam-metoda" class="input-form">
+                        <option value="Za pobraniem">Płatność przy odbiorze (Za pobraniem)</option>
+                        <option value="Przelew tradycyjny">Przelew tradycyjny na konto bankowe</option>
+                    </select>
+
+                    <button id="btn-finalizuj" class="btn-akcja" style="width: 100%; font-size: 1.2rem; padding: 15px;" onclick="zlozZamowienie()">Złóż zamówienie (Bez płatności online)</button>
+                </div>
             </div>
         </div>
 
         <div id="sekcja-clinex" class="sekcja">
             <h1>Katalog Produktów Clinex</h1>
-            <div class="panel-informacyjny" style="margin-bottom: 20px;">
-                <p>Współpracujemy z renomowaną marką <strong>Clinex</strong>. Przejrzyj ich oficjalny katalog.</p>
-            </div>
-            <div class="iframe-container">
-                <iframe src="https://produkt.amtra.pl/katalog/katalog-clinex" title="Katalog Clinex"></iframe>
-            </div>
-        </div>
-
-        <div id="sekcja-ofirmie" class="sekcja">
-            <h1>O naszej firmie</h1>
-            <div class="panel-informacyjny">
-                <h2>Witamy w naszym katalogu!</h2>
-                <p>Zajmujemy się sprzedażą wysokiej jakości produktów chemicznych. Jesteśmy dumnym partnerem marki Clinex, co pozwala nam oferować profesjonalne rozwiązania w atrakcyjnych cenach.</p>
-            </div>
-        </div>
-
-        <div id="sekcja-kontakt" class="sekcja">
-            <h1>Skontaktuj się z nami</h1>
-            <div class="panel-informacyjny">
-                <p>Jesteśmy do Twojej dyspozycji w razie pytań.</p>
-                <ul>
-                    <li>📧 Email: zuchniarz@wp.pl</li>
-                    <li>📞 Telefon: +48 513 333 106 </li>
-                </ul>
+            <div class="iframe-container" style="width: 100%; height: 80vh; border-radius: 12px; overflow: hidden; border: 1px solid #29292e;">
+                <iframe src="https://produkt.amtra.pl/katalog/katalog-clinex" title="Katalog Clinex" style="width: 100%; height: 100%; border: none;"></iframe>
             </div>
         </div>
     </div>
