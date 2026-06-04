@@ -2,7 +2,6 @@
 const SUPABASE_URL = "https://prpycsgjzihsjmsqymyt.supabase.co"; 
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycHljc2dqemloc2ptc3F5bXl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTY1NjcsImV4cCI6MjA5NTQ3MjU2N30.9E0hYR2RaYlzfiGGtMEp8pEmPvyG_ghWsXR3fNiusE0";
 
-// ZMIANA: Używamy nazwy 'supabaseClient' zamiast 'supabase', aby uniknąć konfliktu z globalną zmienną biblioteki
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ---- STAN APLIKACJI (STATE) ----
@@ -73,17 +72,19 @@ function wyswietlProdukty(lista) {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
         
-        // Dynamiczne dopasowanie przycisku w zależności od statusu zalogowania
         let przyciskAkcji = '';
         if (aktualnyUzytkownik) {
-            // Zalogowany -> może normalnie kupować
             przyciskAkcji = `<button class="btn-akcja" onclick="dodajDoKoszyka(${p.id})">Dodaj do koszyka</button>`;
         } else {
-            // Niezalogowany -> przycisk blokuje zakup i przekierowuje do logowania
             przyciskAkcji = `<button class="btn-akcja" style="background-color: #ff9800; color: #fff;" onclick="zmienSekcje('logowanie')">Zaloguj się, by dodać</button>`;
         }
 
+        const urlZdjecia = p.zdjecie_url || p.zdjecie || 'https://via.placeholder.com/250x180?text=Brak+zdj%C4%99cia';
+
         karta.innerHTML = `
+            <div class="produkt-foto-kontener" style="text-align: center; margin-bottom: 15px; border-radius: 8px; overflow: hidden; background: #232329;">
+                <img src="${urlZdjecia}" alt="${p.nazwa}" class="produkt-foto" style="max-width: 100%; height: auto; object-fit: cover;" onerror="this.src='https://via.placeholder.com/250x180?text=Brak+zdj%C4%99cia'">
+            </div>
             <div>
                 <span class="kategoria">${p.kategoria || 'Ogólna'}</span>
                 <h3>${p.nazwa}</h3>
@@ -133,7 +134,6 @@ function dodajDoKoszyka(idProduktu) {
     aktualizujKoszykUI();
 }
 
-// ZMIANA ILOSCI W KOSZYKU
 function zmienIlosc(idProduktu, zmiana) {
     const element = koszyk.find(item => item.id === idProduktu);
     if (!element) return;
@@ -209,7 +209,7 @@ function wczytajKoszykZLocalStorage() {
 }
 
 // ---- REALIZACJA ZAMÓWIENIA ----
-async function zlozZamowienie(metodaPlatnosci) {
+async function zlozZamowienie() {
     const nazwa = document.getElementById('form-nazwa').value.trim();
     const telefon = document.getElementById('form-telefon').value.trim();
     const adres = document.getElementById('form-adres').value.trim();
@@ -233,7 +233,6 @@ async function zlozZamowienie(metodaPlatnosci) {
                 wartosc_calkowita: sumaWartosc,
                 status: 'Nowe',
                 kod_zamowienia: kodZamowienia,
-                metoda_platnosci: metodaPlatnosci,
                 user_id: aktualnyUzytkownik ? aktualnyUzytkownik.id : null
             }
         ]);
@@ -303,7 +302,7 @@ function wyswietlZamowienia(lista) {
                 <span class="status-tag ${klasaStatusu}">${z.status || 'Nowe'}</span>
             </div>
             <p style="margin-bottom: 5px; font-size: 0.95rem;"><strong>Produkty:</strong> ${z.produkty_lista}</p>
-            <p style="color: #a8a8b3; font-size: 0.85rem; margin-bottom: 8px;">Data: ${dataFormat} | Płatność: ${z.metoda_platnosci || 'Nieznana'}</p>
+            <p style="color: #a8a8b3; font-size: 0.85rem; margin-bottom: 8px;">Data: ${dataFormat}</p>
             <div style="text-align: right; font-weight: bold; color: #00e676;">Wartość: ${parseFloat(z.wartosc_calkowita).toFixed(2)} zł</div>
         `;
         kontener.appendChild(karta);
@@ -378,7 +377,6 @@ function aktualizujInterfejsUzytkownika(user) {
     const formDanych = document.getElementById('formularz-danych');
     const ustawieniaEmail = document.getElementById('ustawienia-email-tekst');
 
-    // ZMIANA: Po zalogowaniu/wylogowaniu natychmiast przebudowujemy widok produktów, aby zmienić przyciski
     if (wszystkieProdukty.length > 0) {
         wyswietlProdukty(wszystkieProdukty);
     }
