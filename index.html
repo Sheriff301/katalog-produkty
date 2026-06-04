@@ -3,157 +3,469 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Katalog Produktów</title>
+    <title>Chemia Niemiecka Tania - Katalog Produktów</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #121214; color: #e1e1e6; margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-        nav { background-color: #202024; width: 100%; padding: 15px 0; display: flex; justify-content: center; gap: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); position: sticky; top: 0; z-index: 999; flex-wrap: wrap; }
-        nav button, .dropdown-btn { background-color: transparent; color: #e1e1e6; border: 2px solid transparent; padding: 10px 15px; font-size: 1.05rem; cursor: pointer; border-radius: 8px; transition: 0.3s; font-weight: bold; display: flex; align-items: center; gap: 5px; }
-        nav button:hover, nav button.aktywny, .dropdown:hover .dropdown-btn { border-color: #00e676; color: #00e676; }
-        .dropdown { position: relative; display: inline-block; }
-        .dropdown-content { display: none; position: absolute; background-color: #202024; min-width: 220px; box-shadow: 0px 8px 16px rgba(0,0,0,0.6); border: 1px solid #29292e; border-radius: 8px; z-index: 1000; top: 100%; left: 0; overflow: hidden; padding: 5px 0; }
-        .dropdown-content button { color: #e1e1e6; padding: 12px 20px; text-align: left; width: 100%; border: none; background: none; border-radius: 0; font-size: 1rem; font-weight: normal; transition: 0.2s; }
-        .dropdown-content button:hover { background-color: #29292e; color: #00e676; border-color: transparent; }
-        .dropdown:hover .dropdown-content { display: block; }
-        .zawartosc { width: 100%; max-width: 1200px; padding: 40px 20px; box-sizing: border-box; }
-        .sekcja { display: none; animation: fadeIn 0.4s ease-in-out; }
-        .sekcja.aktywna { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        h1, h2, h3, h4 { color: #00e676; margin-bottom: 20px; }
-        
-        .katalog-siatka { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
-        .produkt-karta { background-color: #202024; border: 1px solid #29292e; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; justify-content: space-between; transition: transform 0.2s, border-color 0.2s; overflow: hidden; }
-        .produkt-karta:hover { transform: translateY(-5px); border-color: #00e676; }
-        .produkt-karta img { width: 100%; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 15px; background-color: #121214; cursor: pointer; }
-        .produkt-karta h3 { margin: 0 0 8px 0; color: #ffffff; font-size: 1.2rem; cursor: pointer; }
-        .kategoria { align-self: flex-start; background-color: #29292e; color: #a8a8b3; padding: 4px 10px; border-radius: 20px; font-size: 0.85rem; margin-bottom: 12px; display: inline-block;}
-        .opis { color: #a8a8b3; font-size: 0.9rem; line-height: 1.5; margin: 0 0 15px 0; flex-grow: 1; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-        .cena { font-size: 1.6rem; font-weight: bold; color: #00e676; margin: 0; }
-        
-        .panel-informacyjny { background-color: #202024; padding: 30px; border-radius: 12px; border-left: 5px solid #00e676; line-height: 1.6; margin-bottom: 20px; }
-        .btn-akcja { background-color: #00e676; color: #121214; border: none; padding: 10px 20px; font-size: 1rem; font-weight: bold; border-radius: 8px; cursor: pointer; transition: 0.2s; display: inline-block; }
-        .btn-akcja:hover { background-color: #00c853; }
-        .btn-powrot { background-color: #29292e; color: #fff; margin-bottom: 20px; }
-        .btn-powrot:hover { background-color: #3f3f46; }
-        
-        .input-form { width: 100%; padding: 12px; margin-bottom: 15px; background-color: #121214; border: 1px solid #29292e; color: #e1e1e6; border-radius: 6px; box-sizing: border-box; font-size: 1rem; }
-        .input-form:focus { outline: none; border-color: #00e676; }
+        /* GŁÓWNE STYLE - CIEMNY MOTYW (DOMYŚLNY) */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #121214;
+            color: #ffffff;
+            transition: background-color 0.3s, color 0.3s;
+            min-height: 100vh;
+        }
+
+        /* NAWIGACJA */
+        nav {
+            background-color: #1a1a1e;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #29292e;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00e676;
+            cursor: pointer;
+        }
+
+        .nav-linki {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        nav button, .dropdown-btn {
+            background: none;
+            border: 1px solid transparent;
+            color: #a8a8b3;
+            padding: 8px 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        nav button:hover, nav button.aktywny {
+            color: #00e676;
+            border-color: #00e676;
+        }
+
+        /* DROPDOWN KATEGORII */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #1a1a1e;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            border: 1px solid #29292e;
+            border-radius: 6px;
+            z-index: 1100;
+        }
+
+        .dropdown-content button {
+            color: #a8a8b3;
+            padding: 12px 16px;
+            text-align: left;
+            width: 100%;
+            display: block;
+            border-radius: 0;
+            border: none;
+        }
+
+        .dropdown-content button:hover {
+            background-color: #29292e;
+            color: #00e676;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        /* ZAWARTOŚĆ I SEKCJE */
+        .zawartosc {
+            padding: 40px 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .sekcja {
+            display: none;
+        }
+
+        .sekcja.aktywna {
+            display: block;
+        }
+
+        h1, h2, h3, h4 {
+            margin-bottom: 20px;
+        }
+
+        /* KATALOG PRODUKTÓW */
+        .produkty-siatka {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .produkt-karta {
+            background-color: #1a1a1e;
+            border: 1px solid #29292e;
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
+        }
+
+        .produkt-karta:hover {
+            transform: translateY(-4px);
+        }
+
+        .produkt-karta h3 {
+            font-size: 1.2rem;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .kategoria {
+            display: inline-block;
+            background-color: #29292e;
+            color: #a8a8b3;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            align-self: flex-start;
+        }
+
+        .cena {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00e676;
+            margin-bottom: 15px;
+        }
+
+        .btn-akcja {
+            background-color: #00e676;
+            color: #121214;
+            border: none;
+            padding: 10px 15px;
+            font-weight: bold;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn-akcja:hover {
+            background-color: #00c853;
+        }
+
+        /* FORMULARZE I INPUTY */
+        .panel-informacyjny {
+            background-color: #1a1a1e;
+            border: 1px solid #29292e;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .grupa-formularza {
+            margin-bottom: 15px;
+        }
+
+        .grupa-formularza label {
+            display: block;
+            margin-bottom: 5px;
+            color: #a8a8b3;
+            font-size: 0.9rem;
+        }
+
+        .input-form {
+            width: 100%;
+            padding: 12px;
+            background-color: #29292e;
+            border: 1px solid #3e3e42;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .input-form:focus {
+            border-color: #00e676;
+        }
+
+        /* KOSZYK */
+        .koszyk-element {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #1a1a1e;
+            border: 1px solid #29292e;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .koszyk-kontrola {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .koszyk-kontrola button {
+            background-color: #29292e;
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .btn-usun {
+            background-color: #f44336;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .suma-zamowienia {
+            text-align: right;
+            font-size: 1.5rem;
+            color: #00e676;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .metody-platnosci {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .btn-platnosci {
+            padding: 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.2s;
+        }
+
+        .btn-platnosci:hover { opacity: 0.9; }
+        .btn-paypal { background-color: #ffc439; color: #003087; }
+        .btn-blik { background-color: #231f20; color: #ffffff; border: 1px solid #3e3e42; }
+        .btn-p24 { background-color: #d9363e; color: #ffffff; }
+        .btn-karta { background-color: #3f51b5; color: #ffffff; }
+        .btn-pobranie { background-color: #607d8b; color: #ffffff; }
+
+        /* STATUS ZAMÓWIEŃ */
+        .zamowienie-karta {
+            background-color: #1a1a1e;
+            border: 1px solid #29292e;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+
+        .zamowienie-naglowek {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #29292e;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .status-tag {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.85rem;
+        }
+        .status-nowe { background-color: #2196f3; color: white; }
+        .status-realizacja { background-color: #ff9800; color: white; }
+        .status-wyslane { background-color: #4caf50; color: white; }
+
+        /* RAMKA IFRAME */
+        .iframe-kontener {
+            width: 100%;
+            height: 75vh;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #29292e;
+        }
+
         .ukryty { display: none !important; }
 
-        .koszyk-element { display: flex; justify-content: space-between; align-items: center; background-color: #202024; padding: 15px 20px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #29292e; }
-        .koszyk-kontrola { display: flex; align-items: center; gap: 10px; }
-        .koszyk-kontrola button { background-color: #29292e; color: #fff; border: none; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-size: 1.2rem; }
-        .koszyk-kontrola button:hover { background-color: #3f3f46; }
-        .btn-usun { background-color: #f44336 !important; font-size: 0.9rem !important; }
-        .btn-usun:hover { background-color: #d32f2f !important; }
-
-        .szczegoly-widok { display: flex; flex-direction: column; gap: 30px; background-color: #202024; padding: 30px; border-radius: 12px; border: 1px solid #29292e; }
-        @media(min-width: 768px) { .szczegoly-widok { flex-direction: row; } }
-        .szczegoly-obraz { flex: 1; border-radius: 12px; overflow: hidden; background-color: #121214; display: flex; align-items: center; justify-content: center; }
-        .szczegoly-obraz img { width: 100%; height: auto; max-height: 500px; object-fit: contain; }
-        .szczegoly-info { flex: 1; display: flex; flex-direction: column; }
-        .szczegoly-info h2 { font-size: 2rem; color: #fff; margin-top: 0; margin-bottom: 10px; }
-        .szczegoly-info .cena { font-size: 2.5rem; margin: 20px 0; }
-        .szczegoly-info .opis-pelny { color: #a8a8b3; line-height: 1.8; font-size: 1.05rem; white-space: pre-wrap; }
-
-        .zamowienie-karta { background-color: #202024; border: 1px solid #29292e; border-radius: 8px; padding: 20px; margin-bottom: 15px; }
-        .zamowienie-naglowek { display: flex; justify-content: space-between; border-bottom: 1px solid #29292e; padding-bottom: 10px; margin-bottom: 10px; }
-        .status-badge { background-color: #2196F3; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; }
+        /* STYLE JASNEGO MOTYWU */
+        body.jasny-motyw { background-color: #f4f4f5; color: #121214; }
+        .jasny-motyw nav { background-color: #ffffff; box-shadow: 0 4px 10px rgba(0,0,0,0.08); border-bottom: 1px solid #e4e4e7; }
+        .jasny-motyw nav button, .jasny-motyw .dropdown-btn { color: #3f3f46; }
+        .jasny-motyw nav button:hover, .jasny-motyw nav button.aktywny { color: #00c853; border-color: #00c853; }
+        .jasny-motyw .dropdown-content { background-color: #ffffff; border-color: #e4e4e7; box-shadow: 0px 8px 16px rgba(0,0,0,0.08); }
+        .jasny-motyw .dropdown-content button { color: #3f3f46; }
+        .jasny-motyw .dropdown-content button:hover { background-color: #f4f4f5; }
+        
+        .jasny-motyw .produkt-karta, .jasny-motyw .panel-informacyjny, .jasny-motyw .koszyk-element, .jasny-motyw .zamowienie-karta { background-color: #ffffff; border-color: #e4e4e7; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
+        .jasny-motyw .produkt-karta h3, .jasny-motyw h1, .jasny-motyw h2, .jasny-motyw h3, .jasny-motyw h4 { color: #121214; }
+        .jasny-motyw .kategoria { background-color: #e4e4e7; color: #3f3f46; }
+        .jasny-motyw .input-form { background-color: #ffffff; color: #121214; border-color: #d4d4d8; }
+        .jasny-motyw .koszyk-kontrola button { background-color: #e4e4e7; color: #121214; }
+        .jasny-motyw .koszyk-kontrola button:hover { background-color: #d4d4d8; }
+        .jasny-motyw .btn-blik { background-color: #f4f4f5; color: #231f20; border-color: #d4d4d8; }
     </style>
 </head>
 <body>
 
     <nav>
-        <button id="btn-cennik" class="aktywny" onclick="zmienSekcje('cennik')">Pełny Katalog</button>
-        <div class="dropdown">
-            <button id="btn-kategorie" class="dropdown-btn">Kategorie ▾</button>
-            <div id="lista-kategorii-dropdown" class="dropdown-content">
-                <button disabled style="color: #555;">Ładowanie...</button>
+        <div class="logo" onclick="zmienSekcje('katalog')">🧪 Chemia Niemiecka Tania</div>
+        <div class="nav-linki">
+            <button id="btn-nav-katalog" class="aktywny" onclick="zmienSekcje('katalog')">Pełny Katalog</button>
+            
+            <div class="dropdown">
+                <button class="dropdown-btn">Kategorie ▾</button>
+                <div class="dropdown-content" id="lista-kategorii-dropdown">
+                    </div>
             </div>
+
+            <button id="btn-nav-clinex" onclick="zmienSekcje('clinex')">Katalog Clinex</button>
+            <button id="btn-nav-koszyk" onclick="zmienSekcje('koszyk')">🛒 Koszyk (<span id="koszyk-licznik">0</span>)</button>
+            <button id="btn-status" class="ukryty" style="color: #2196F3; border-color: #2196F3;" onclick="zmienSekcje('status')">📦 Status Zamówień</button>
+            <button id="btn-ustawienia" class="ukryty" style="color: #FFC107; border-color: #FFC107;" onclick="zmienSekcje('ustawienia')">⚙️ Ustawienia</button>
+            <button id="btn-konto" onclick="zmienSekcje('logowanie')">👤 Zaloguj się</button>
+            <button id="btn-wyloguj" class="ukryty" style="color: #f44336;" onclick="wylogujKlienta()">Wyloguj</button>
         </div>
-        <button id="btn-clinex" onclick="zmienSekcje('clinex')">Katalog Clinex</button>
-        <button id="btn-koszyk" style="border-color: #00e676;" onclick="zmienSekcje('koszyk')">🛒 Koszyk (<span id="koszyk-licznik">0</span>)</button>
-        
-        <button id="btn-status" class="ukryty" style="color: #2196F3; border-color: #2196F3;" onclick="zmienSekcje('status')">📦 Status Zamówień</button>
-        <button id="btn-konto" onclick="zmienSekcje('logowanie')">👤 Zaloguj / Zarejestruj</button>
-        <button id="btn-wyloguj" class="ukryty" style="color: #f44336;" onclick="wylogujKlienta()">Wyloguj</button>
     </nav>
 
     <div class="zawartosc">
-        <div id="sekcja-logowanie" class="sekcja">
-            <div style="max-width: 400px; margin: 0 auto;">
-                <h1 style="text-align: center;">Logowanie klienta</h1>
-                <div class="panel-informacyjny">
-                    <p style="margin-top:0; color:#a8a8b3;">Zaloguj się, aby złożyć zamówienie i śledzić jego status.</p>
-                    <input type="email" id="auth-email" class="input-form" placeholder="Adres e-mail">
-                    <input type="password" id="auth-haslo" class="input-form" placeholder="Hasło (min. 6 znaków)">
-                    
-                    <button class="btn-akcja" style="width: 100%; margin-bottom: 10px;" onclick="zalogujKlienta()">Zaloguj się</button>
-                    <button class="btn-akcja" style="width: 100%; background-color: #29292e; color: #fff;" onclick="zarejestrujKlienta()">Nie masz konta? Zarejestruj się</button>
+
+        <div id="sekcja-katalog" class="sekcja aktywna">
+            <h1 id="katalog-tytul">Wszystkie Produkty</h1>
+            <div class="produkty-siatka" id="produkty-lista-html">
+                </div>
+        </div>
+
+        <div id="sekcja-clinex" class="sekcja">
+            <h1>Katalog Clinex</h1>
+            <div class="iframe-kontener">
+                <iframe src="https://produkt.amtra.pl/katalog/katalog-clinex" title="Katalog Clinex" style="width: 100%; height: 100%; border: none;" allow="fullscreen"></iframe>
+            </div>
+        </div>
+
+        <div id="sekcja-koszyk" class="sekcja">
+            <h1>Twój Koszyk</h1>
+            <div id="koszyk-elementy-lista">
+                </div>
+            
+            <div id="koszyk-podsumowanie-sekcja" class="ukryty">
+                <div class="suma-zamowienia">Suma do zapłaty: <span id="koszyk-suma-wartosc">0.00</span> zł</div>
+                
+                <div id="wymagane-logowanie-info" class="panel-informacyjny" style="text-align: center; border-color: #ff9800;">
+                    <p style="color: #ff9800; font-weight: bold;">Musisz się zalogować, aby złożyć zamówienie!</p>
+                    <button class="btn-akcja" style="margin-top: 15px; max-width: 200px;" onclick="zmienSekcje('logowanie')">Idź do logowania</button>
+                </div>
+
+                <div id="formularz-danych" class="panel-informacyjny ukryty">
+                    <h3>Dane do wysyłki i Płatność</h3>
+                    <div class="grupa-formularza">
+                        <label>Imię i Nazwisko / Firma</label>
+                        <input type="text" id="form-nazwa" class="input-form" placeholder="np. Jan Kowalski">
+                    </div>
+                    <div class="grupa-formularza">
+                        <label>Numer telefonu</label>
+                        <input type="text" id="form-telefon" class="input-form" placeholder="np. +48 500 600 700">
+                    </div>
+                    <div class="grupa-formularza">
+                        <label>Adres dostawy</label>
+                        <input type="text" id="form-adres" class="input-form" placeholder="Ulica, numer, kod pocztowy, miasto">
+                    </div>
+
+                    <h4 style="margin-top: 25px;">Wybierz metodę płatności, aby sfinalizować:</h4>
+                    <div class="metody-platnosci">
+                        <button class="btn-platnosci btn-paypal" onclick="zlozZamowienie('PayPal')">PayPal</button>
+                        <button class="btn-platnosci btn-blik" onclick="zlozZamowienie('BLIK')">BLIK</button>
+                        <button class="btn-platnosci btn-p24" onclick="zlozZamowienie('Przelewy24')">Przelewy24</button>
+                        <button class="btn-platnosci btn-karta" onclick="zlozZamowienie('Karta')">Karta płatnicza</button>
+                        <button class="btn-platnosci btn-pobranie" style="grid-column: span 2;" onclick="zlozZamowienie('Za pobraniem')">Płatność przy odbiorze (Za pobraniem)</button>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div id="sekcja-status" class="sekcja">
             <h1>Twoje Zamówienia</h1>
-            <div id="lista-zamowien-klienta">
-                <p style="color: #a8a8b3;">Ładowanie historii zamówień...</p>
-            </div>
+            <div id="zamowienia-lista-html">
+                </div>
         </div>
 
-        <div id="sekcja-cennik" class="sekcja aktywna">
-            <h1>Wszystkie Produkty</h1>
-            <div id="katalog-pojemnik" class="katalog-siatka"><p style="color: #a8a8b3;">Ładowanie przedmiotów z bazy...</p></div>
-        </div>
-
-        <div id="sekcja-kategorie" class="sekcja">
-            <h1 id="naglowek-kategorii">Wybierz kategorię z menu</h1>
-            <div id="katalog-filtrowany" class="katalog-siatka"></div>
-        </div>
-
-        <div id="sekcja-szczegoly" class="sekcja">
-            <button class="btn-akcja btn-powrot" onclick="zmienSekcje('cennik')">← Powrót do katalogu</button>
-            <div id="szczegoly-pojemnik"></div>
-        </div>
-
-        <div id="sekcja-koszyk" class="sekcja">
-            <h1>Twój Koszyk</h1>
-            <div id="koszyk-lista-elementow">
-                <p style="color: #a8a8b3;">Koszyk jest pusty.</p>
-            </div>
-            
-            <div id="panel-zamowienia" class="panel-informacyjny ukryty" style="margin-top: 30px;">
-                <h2 style="text-align: right; margin-top: 0;">Suma do zapłaty: <span id="koszyk-suma-kwota">0.00</span> zł</h2>
-                <hr style="border-color: #29292e; margin: 20px 0;">
+        <div id="sekcja-ustawienia" class="sekcja">
+            <h1>Ustawienia Konta</h1>
+            <div class="panel-informacyjny" style="max-width: 600px; margin: 0 auto;">
+                <h3>Twoje dane logowania</h3>
+                <p style="font-size: 1.1rem; margin-top: 5px;">Zalogowany jako: <strong id="ustawienia-email-tekst" style="color: #00e676;">Brak danych</strong></p>
                 
-                <div id="wymagane-logowanie-info" style="color: #f44336; margin-bottom: 15px; font-weight: bold;">
-                    Musisz być zalogowany, aby złożyć zamówienie! Przejdź do zakładki "Zaloguj / Zarejestruj".
-                </div>
-
-                <div id="formularz-danych">
-                    <h3>Dane do wysyłki i Płatność</h3>
-                    <input type="text" id="zam-imie" class="input-form" placeholder="Imię i Nazwisko / Nazwa Firmy">
-                    <input type="text" id="zam-telefon" class="input-form" placeholder="Numer telefonu">
-                    <input type="text" id="zam-adres" class="input-form" placeholder="Adres dostawy (Ulica, nr, kod pocztowy, miasto)">
-                    
-                    <select id="zam-metoda" class="input-form">
-                        <option value="Za pobraniem">Płatność przy odbiorze (Za pobraniem)</option>
-                        <option value="Przelew tradycyjny">Przelew tradycyjny na konto bankowe</option>
-                    </select>
-
-                    <button id="btn-finalizuj" class="btn-akcja" style="width: 100%; font-size: 1.2rem; padding: 15px;" onclick="zlozZamowienie()">Złóż zamówienie (Bez płatności online)</button>
-                </div>
+                <hr style="border-color: #29292e; margin: 25px 0;">
+                
+                <h3>Personalizacja wyglądu</h3>
+                <p style="color: #a8a8b3; margin-bottom: 15px; font-size: 0.9rem;">Dostosuj styl i schemat kolorów strony według własnych upodobań.</p>
+                <button class="btn-akcja" style="width: 100%; background-color: #FFC107; color: #121214;" onclick="przelaczMotyw()">☀️ / 🌙 Przełącz motyw (Jasny / Ciemny)</button>
             </div>
         </div>
 
-        <div id="sekcja-clinex" class="sekcja">
-            <h1>Katalog Produktów Clinex</h1>
-            <div class="iframe-container" style="width: 100%; height: 80vh; border-radius: 12px; overflow: hidden; border: 1px solid #29292e;">
-                <iframe src="https://produkt.amtra.pl/katalog/katalog-clinex" title="Katalog Clinex" style="width: 100%; height: 100%; border: none;" allow="fullscreen"></iframe>
+        <div id="sekcja-logowanie" class="sekcja">
+            <div class="panel-informacyjny" style="max-width: 450px; margin: 0 auto;">
+                <h2 id="logowanie-tytul-sekcji">Zaloguj się do sklepu</h2>
+                <div class="grupa-formularza">
+                    <label>Adres E-mail</label>
+                    <input type="email" id="auth-email" class="input-form" placeholder="email@przyklad.pl">
+                </div>
+                <div class="grupa-formularza">
+                    <label>Hasło</label>
+                    <input type="password" id="auth-haslo" class="input-form" placeholder="••••••••">
+                </div>
+                <button class="btn-akcja" id="btn-glowny-auth" onclick="autentykuj('logowanie')" style="margin-top: 10px;">Zaloguj się</button>
+                
+                <p style="text-align: center; margin-top: 20px; color: #a8a8b3; font-size: 0.9rem;" id="auth-przelacznik-tekst">
+                    Nie masz konta? <a href="#" style="color: #00e676; text-decoration: none;" onclick="przelaczTrybAuth(event, 'rejestracja')">Zarejestruj się</a>
+                </p>
             </div>
         </div>
+
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="app.js"></script>
 </body>
 </html>
