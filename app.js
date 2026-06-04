@@ -1,6 +1,6 @@
 // ---- KONFIGURACJA SUPABASE ----
 const SUPABASE_URL = "https://prpycsgjzihsjmsqymyt.supabase.co"; 
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycHljc2dqemloc2ptc3F5bXl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTY1NjcsImV4cCI6MjA5NTQ3MjU2N30.9E0hYR2RaYlzfiGGtMEp8pEmPvyG_ghWsXR3fNiusE0"; // <-- Wklej tutaj swój rzeczywisty klucz Project API Key
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycHljc2dqemloc2ptc3F5bXl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTY1NjcsImV4cCI6MjA5NTQ3MjU2N30.9E0hYR2RaYlzfiGGtMEp8pEmPvyG_ghWsXR3fNiusE0";
 
 // ZMIANA: Używamy nazwy 'supabaseClient' zamiast 'supabase', aby uniknąć konfliktu z globalną zmienną biblioteki
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -72,6 +72,17 @@ function wyswietlProdukty(lista) {
     lista.forEach(p => {
         const karta = document.createElement('div');
         karta.className = 'produkt-karta';
+        
+        // Dynamiczne dopasowanie przycisku w zależności od statusu zalogowania
+        let przyciskAkcji = '';
+        if (aktualnyUzytkownik) {
+            // Zalogowany -> może normalnie kupować
+            przyciskAkcji = `<button class="btn-akcja" onclick="dodajDoKoszyka(${p.id})">Dodaj do koszyka</button>`;
+        } else {
+            // Niezalogowany -> przycisk blokuje zakup i przekierowuje do logowania
+            przyciskAkcji = `<button class="btn-akcja" style="background-color: #ff9800; color: #fff;" onclick="zmienSekcje('logowanie')">Zaloguj się, by dodać</button>`;
+        }
+
         karta.innerHTML = `
             <div>
                 <span class="kategoria">${p.kategoria || 'Ogólna'}</span>
@@ -79,7 +90,7 @@ function wyswietlProdukty(lista) {
             </div>
             <div>
                 <div class="cena">${parseFloat(p.cena).toFixed(2)} zł</div>
-                <button class="btn-akcja" onclick="dodajDoKoszyka(${p.id})">Dodaj do koszyka</button>
+                ${przyciskAkcji}
             </div>
         `;
         kontener.appendChild(karta);
@@ -122,6 +133,7 @@ function dodajDoKoszyka(idProduktu) {
     aktualizujKoszykUI();
 }
 
+// ZMIANA ILOSCI W KOSZYKU
 function zmienIlosc(idProduktu, zmiana) {
     const element = koszyk.find(item => item.id === idProduktu);
     if (!element) return;
@@ -365,6 +377,11 @@ function aktualizujInterfejsUzytkownika(user) {
     const infoLogowanie = document.getElementById('wymagane-logowanie-info');
     const formDanych = document.getElementById('formularz-danych');
     const ustawieniaEmail = document.getElementById('ustawienia-email-tekst');
+
+    // ZMIANA: Po zalogowaniu/wylogowaniu natychmiast przebudowujemy widok produktów, aby zmienić przyciski
+    if (wszystkieProdukty.length > 0) {
+        wyswietlProdukty(wszystkieProdukty);
+    }
 
     if (user) {
         btnKonto.classList.add('ukryty');
