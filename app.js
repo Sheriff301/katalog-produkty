@@ -1,6 +1,6 @@
 // ---- KONFIGURACJA SUPABASE ----
 const SUPABASE_URL = "https://prpycsgjzihsjmsqymyt.supabase.co"; 
-const SUPABASE_ANON_KEY = "TWÓJ_KLUCZ_ANON_Z_SUPABASE"; // <-- Wklej tutaj swój rzeczywisty klucz Project API Key
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBycHljc2dqemloc2ptc3F5bXl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4OTY1NjcsImV4cCI6MjA5NTQ3MjU2N30.9E0hYR2RaYlzfiGGtMEp8pEmPvyG_ghWsXR3fNiusE0"; // <-- Wklej tutaj swój rzeczywisty klucz Project API Key
 
 // ZMIANA: Używamy nazwy 'supabaseClient' zamiast 'supabase', aby uniknąć konfliktu z globalną zmienną biblioteki
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
