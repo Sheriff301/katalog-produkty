@@ -4,7 +4,6 @@ const assets = [
   'manifest.json'
 ];
 
-// Instalacja Service Workera i zapis plików w pamięci telefonu
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -13,9 +12,7 @@ self.addEventListener('install', (e) => {
   );
 });
 
-// Odbieranie żądań – pobieranie z pamięci podręcznej, gdy brak sieci
 self.addEventListener('fetch', (e) => {
-  e.respondId = true;
   e.respondWith(
     caches.match(e.request).then((response) => {
       return response || fetch(e.request);
